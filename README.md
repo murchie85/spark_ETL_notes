@@ -96,7 +96,68 @@ firstLine       = lines.first()
 3. Launch **actions**
   
   
+    
+## Creating RDDs  
   
+Simplest method is : 
+- Take existing collection 
+- Pass into sparkContext's `parallelize` method  
+    
+**Parallelise operation**  
+
+```python  
+inputIntegers = list(range(1,6))
+integerRdd   = sc.parallelize(inputIntegers)
+```          
+
+**SparkContext**   represents a connection to a computer cluster.  
+
+    
+- All elements will be copied into a **distributed dataset**    
+- which can be operated on in parallel  
+	- handy for small datasets 
+- **not practical** for working on large datasets (because we will need to slice/dice em first)  
+  
+
+    
+A better way is to read from **external storage**  
+    
+**Read from textfile**  
+
+```python
+sc = SparkContext("local", "textfile") 
+lines = sc.textFile("in/uppercase.txt")
+```
+    
+More realistic approach is using **HDFS** or db integration with **JDBC**, **CASSANDRA**, **ELASTISEARCH**  
+    
+## Filter Transformation
+
+
+- returns new RDD original remains unchanged
+- Returns elements selected which pass **filter function**    
+- Can be used to remove invalid rows or clean up 
+
+```python
+cleanedLines = lines.filter(lambda line: line.strip())
+```  
+  
+
+## Map transformation  
+
+- Applies a function to each element in the RDD  
+- Result being the new value of each applied 
+  
+- it can be used to make `http requests` to each URL in our input RDD, or calculate the square root of each number.  
+      
+
+**Make http request for each input url**    
+
+```python  
+URLs = sc.textFile("in/urls.text")
+URLs.map(makeHttpRequest)
+```
+
 
 
 ## Airflow  
