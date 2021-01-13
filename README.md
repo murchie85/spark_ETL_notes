@@ -1,21 +1,26 @@
 
+# Pyspark and DataLake notes
 
-
+These are a list of notes, learning materials and resources for learning Pyspark, Tableu and other datalake technologies and terms.   
 
 ## Learning Path
 
-![](spark.png)
-  
-- [pyspark](#Pyspark) 
-- RDD 
-- Tableu 
-- Hive Tables
+
+    
+| topic | 
+|-------|
+| [pyspark](#Pyspark) |
+| RDD |
+| Tableu | 
+| Hive Tables |
 
 
 
 
 ## Pyspark
     
+![](spark.png)
+
 - Apache Spark is written in Scala programming language
 	- Py4j Allows apache to create the python plugin
 - Using PySpark, you can work with **RDDs** in Python programming language
