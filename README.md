@@ -10,7 +10,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 | topic | 
 |-------|
 | [pyspark](#Pyspark) |
-| RDD |
+| [RDD](#RDD) |
 | Tableu | 
 | Hive Tables |
 
@@ -39,7 +39,6 @@ spark-submit myprogram.py
 
 
 
-
 ## Useful Links 
 
   
@@ -52,9 +51,54 @@ spark-submit myprogram.py
 
 
 
+# RDD
+  
+Resilient Distributed Dataset (RDD)    
+  
+**"RDD IS A CAPSULATION AROUND A LARGE DATASET"**  
+    
+- The most important concept
+- RDD can contain **any type of object** including user defined classes.
+- In Spark **all work** is 
+	- Creating RDDs
+	- Transforming RDDs
+	- Applying operations to RDDs to compute results    
+
+- Spark shards and distributes your data under the hood 
+	- It parellelizes the operations you perform on them . 
 
 
+RDDs have two operations: 
 
+- **Transforamtions**  
+	- Applies a function to RDD and returns a new one.
+	- i.e. filter an RDD to produce a subset RDD
+- **Actions**  
+	- Compute a result based on an RDD
+	- i.e. First which returns the first element in an RDD
+
+### Filter Transformation example  
+
+```python
+lines           = sc.textFile("in/Uppercase.txt")
+linesWithFriday = lines.filter(lambda line: "Friday" in line)
+```
+
+  
+### First Action example  
+
+```python
+lines           = sc.textFile("in/Uppercase.txt")
+firstLine       = lines.first()
+```  
+    
+
+## General Spark Flow with RDDs  
+  
+1. Generate **initial RDDS** from external Data.  
+2. Apply **transformations** 
+3. Launch **actions**
+  
 
 
 
