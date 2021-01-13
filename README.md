@@ -14,6 +14,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 | [Airflow](#Airflow) | 
 | Tableu | 
 | Hive Tables |
+| [Data Engineer](#Data-Engineer)|
 |[Useful Links](#Useful-Links)|
 |[Notes](#Notes)|
 
@@ -126,8 +127,23 @@ firstLine       = lines.first()
   
 [SAS](https://www.sas.com/en_gb/insights/data-management/what-is-etl.html)  
     
+## Data Engineer
+  
 
-
+Once the Data Architect has presented their vision for the cloud palace in which your data will be stored, the Data Engineer steps in to build it.
+  
+These specialist professionals use programming languages to construct and maintain the proposed framework and enable data to be searched and retrieved efficiently.
+  
+It’s super technical work that involves not only building the data warehouse, but constantly revisiting and improving it to ensure maximum efficiency. A Data Engineer will also create and document processes, outlining how other data professionals in the team will harvest, authenticate, and model the information.
+  
+Before big data truly took off, Data Architect and Data Engineer was often a single role, with data pros both designing and constructing the systems.
+  
+In the past few years, given the increasing popularity and complexity of analytical solutions—and the sheer quantity of data we’re amassing—Data Engineer has emerged as a standalone position.
+  
+Your Data Engineer should have a solid background in data warehousing, and have experience with big data technologies and languages like Python, R, SQL, and Scala, SQL and NoSQL databases, and the AWS Cloud.
+  
+A good understanding of big data platforms like Hadoop, Spark, Kafta, and visualization tools like Tableau will also come in handy.
+  
 ## Notes
 
 - No **dataswamps**
