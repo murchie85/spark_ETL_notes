@@ -7,12 +7,15 @@ These are a list of notes, learning materials and resources for learning Pyspark
 
 
     
-| topic | 
+| Topics | 
 |-------|
 | [pyspark](#Pyspark) |
 | [RDD](#RDD) |
+| [Airflow](#Airflow) | 
 | Tableu | 
 | Hive Tables |
+|[Useful Links](#Useful-Links)|
+|[Notes](#Notes)|
 
 
 
@@ -37,14 +40,6 @@ spark-submit myprogram.py
 ```  
   
 
-
-
-## Useful Links 
-
-  
-[pyspark](https://www.youtube.com/watch?v=XrpSRCwISdk&ab_channel=Databricks ) 
-  
-[SAS](https://www.sas.com/en_gb/insights/data-management/what-is-etl.html)
 
 
 
@@ -99,10 +94,41 @@ firstLine       = lines.first()
 2. Apply **transformations** 
 3. Launch **actions**
   
+  
+  
 
 
+## Airflow  
 
-## Notes  
+
+**DAG** - Directed Acyclic Graph  
+    
+
+- Workflows 
+- graphs 
+- monitoring workflows (workflow manager like UCD etc )  
+- Great for ETL 
+
+
+1. Write a CSV file to a platform data container.
+
+2. Convert the CSV file into a Parquet table.
+
+3. Run SQL queries on the data in Parquet table.  
+  
+  
+## Useful Links
+
+  
+[pyspark](https://www.youtube.com/watch?v=XrpSRCwISdk&ab_channel=Databricks ) 
+
+[DataScience roles](https://www.jeffersonfrank.com/insights/aws-big-data-roles?utm_source=DSMN8&utm_medium=LinkedIn)
+  
+[SAS](https://www.sas.com/en_gb/insights/data-management/what-is-etl.html)  
+    
+
+
+## Notes
 
 - No **dataswamps**
 - Dynamic **DAGs **with Airflow
@@ -171,23 +197,4 @@ Infrastructure or server experience is not necessary
 - Deployment
 
 
-
-## Airflow  
-
-
-**DAG** - Directed Acyclic Graph  
-    
-
-- Workflows 
-- graphs 
-- monitoring workflows (workflow manager like UCD etc )  
-- Great for ETL 
-
-
-1. Write a CSV file to a platform data container.
-
-2. Convert the CSV file into a Parquet table.
-
-3. Run SQL queries on the data in Parquet table.  
-  
   
