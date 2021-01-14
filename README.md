@@ -215,13 +215,13 @@ firstLine       = lines.first()
 
 ## Popular transformations
   
-  
-- Run on Single RDD 
+
+- Run on **Single RDD**
 	- filter
 	- map  
 	- sample
 	- Distinct
-- Run on two or more RDDs
+- Run on **two or more RDDs**
 	- **Union**
 		- merges
 	- **Intersection**
@@ -231,14 +231,14 @@ firstLine       = lines.first()
 	- **Cartesian product**
 		- returns all possible pairs of A and B 
 
-## Popular Actions  
-  
+## Popular Actions
+    
 - **Collect**
 	- Retrieves entire RDD and returns 
 - **count**
 	- count unique elements
 - **countByValue**
-	- 
+	- counts by target value
 - **Take**
 	- takes n element from rdd i.e. `take(3)` returns first three roles
 - **saveAsTextFile**
