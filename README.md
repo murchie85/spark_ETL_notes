@@ -14,6 +14,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 |     | [Summary of Actions/Transformations](#Summary-of-Actions/Transformations)| 
 |     | [Pair RDDs](#Pair-RDDs) |
 |     | [Persistence and Caching](#Persistence-and-Caching) |
+|     | [REGEX Tips](#REGEX-Tips) |
 | **[AIRFLOW](#Airflow)** |     |
 | **TABLEU** |     |
 | Hive Tables |    |
@@ -333,22 +334,15 @@ There are factors to consider
 ![](images/storageChoice.png)  
   
 
-## REGEX Tips  
-
-#### Split by tab  
-  
-`line.split("\t")`  
-
-#### Filter empty using boolean  
-    
-- lambda returns true/false for each  
-- filter just keeps the true values
-
-```python
-validNumbers = numbers.filter(lambda: number: number)
-```
   
 ## Pair RDDs
+  
+
+   
+[Navigation](#Navigation)  
+    
+  
+
 
 - key value pairs 
 - each row is one key - multiple values    
@@ -370,8 +364,31 @@ Methods:
     pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_tuple_list")
 
 ```
+  
 
   
+## REGEX Tips
+  
+   
+[Navigation](#Navigation)  
+    
+  
+
+
+#### Split by tab  
+  
+`line.split("\t")`  
+
+#### Filter empty using boolean  
+    
+- lambda returns true/false for each  
+- filter just keeps the true values
+
+```python
+validNumbers = numbers.filter(lambda: number: number)
+```
+  
+
 
 ## Spark Architecture   
   
