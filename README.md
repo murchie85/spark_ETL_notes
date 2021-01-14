@@ -297,7 +297,20 @@ Each persisted RDD can be stored using a **different storage level**
 ![](images/storage.png)  
   
 - `RDD.cache()` selects the default of memory only.  
+  
+There are factors to consider
+  
 
+- What happens if you try to cache too much into memory?  
+
+  
+- Spark evicts partitions **least recently used**  
+	- if disk, they get written there
+	- if mem only storage will recompute these next time they are needed.  
+- In either case sparkjob wont break.  
+  
+![](images/storageChoice.png)  
+  
 
 ## REGEX Tips  
 
