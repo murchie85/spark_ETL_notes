@@ -158,22 +158,155 @@ Methods:
   
 - return pair RDDs from **tuple**  
 - convert RDD to pair RDD  using **parallelie** function.   
-  
+    
+## creating a pair-rdd from tuple  
+
 ```python
-    conf = SparkConf().setAppName("create").setMaster("local")
-    sc = SparkContext(conf = conf)
+conf = SparkConf().setAppName("create").setMaster("local")
+sc = SparkContext(conf = conf)
 
-    tuples = [("Lily", 23), ("Jack", 29), ("Mary", 29), ("James", 8)]
-    pairRDD = sc.parallelize(tuples)
+tuples = [("Lily", 23), ("Jack", 29), ("Mary", 29), ("James", 8)]
+pairRDD = sc.parallelize(tuples)
 
-    pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_tuple_list")
+pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_tuple_list")
 
 ```
+      
+`coalesce` functiontion reduces number of partitions to what we pass in. 
+This is good because it reduces to a single file (for our text file).  
+  
+**output**  
+  
+```
+('lily',23)
+('jack',32)
+...
+etc  
+```  
+  
+  
+
+## creating a pair-rdd from regular rdd  
+  
+```python 
+conf = SparkConf().setAppName("create").setMaster("local")
+sc = SparkContext(conf = conf)
+
+inputStrings = ["Lily 23", "Jack 29", "Mary 29", "James 8"]
+regularRDDs = sc.parallelize(inputStrings)
+
+pairRDD = regularRDDs.map(lambda s: (s.split(" ")[0], s.split(" ")[1]))
+pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_regular_rdd")
+
+```
+1. regular rdd from list of strings
+2. parallelise to rdd 
+2. we map the rdd and turn it into touple rdd/ pair rdd  
+  
+
+## Transformations on pair rdds  
+  
+- support same functions as regular rdds  
+- but we need to pass functions that work on **tuples** only  
+  
+### filter  
     
+- generate pair rdd
+- remove all airports not in the USA  
+- output to file  
 
+```python
+if __name__ == "__main__":
 
+    conf = SparkConf().setAppName("airports").setMaster("local[*]")
+    sc = SparkContext(conf = conf)
 
+    airportsRDD = sc.textFile("in/airports.text") # load into string RDD
 
+    # create touble/pair RDD
+    airportPairRDD = airportsRDD.map(lambda line: \
+        (Utils.COMMA_DELIMITER.split(line)[1],
+         Utils.COMMA_DELIMITER.split(line)[3]))
+
+    # filter value != usa
+    airportsNotInUSA = airportPairRDD.filter(lambda keyValue: keyValue[1] != "\"United States\"")
+
+    airportsNotInUSA.saveAsTextFile("out/airports_not_in_usa_pair_rdd.text")
+
+```  
+**out**  
+```
+"Putnam County Airport", "Greencastle"
+"Dowagiac Municipal Airport", "Dowagiac"
+"Cambridge Municipal Airport", "Cambridge"
+"Door County Cherryland Airport", "Sturgeon Bay
+```  
+   
+### Map values  
+  
+- keys stay the same  
+    
+Challenge:  
+- convert countryname to upper case 
+- output to file  
+  
+
+```python
+if __name__ == "__main__":
+    conf = SparkConf().setAppName("airports").setMaster("local[*]")
+    sc = SparkContext(conf = conf)
+
+    # conver to string rdd
+    airportsRDD = sc.textFile("in/airports.text")
+
+    # again creating touple rdd using index 
+    airportPairRDD = airportsRDD.map(lambda line: \
+        (Utils.COMMA_DELIMITER.split(line)[1], \
+      Utils.COMMA_DELIMITER.split(line)[3]))
+  
+  	# map 
+  	# argument is original val, return is upper case
+    upperCase = airportPairRDD.mapValues(lambda countryName: countryName.upper())
+
+    upperCase.saveAsTextFile("out/airports_uppercase.text")
+```
+OUT  
+```
+('"Namanga"', '"KENYA"')
+('"Phu Quoc"', '"VIETNAM"')
+```  
+  
+### Aggregation (reduceByKey)
+  
+- Most popular transformation types for pair rdd  
+- sum/add/combine all values for a given key  
+Known as **reduceByKey**
+- Runs lots of **parallel reduce operations** for each key (and its values) 
+- Returns an RDD, of key and aggregated values  
+  
+In wordcount example we used `countByValue` but this is an action in memory, so the **reduceByKey** is better as it creates an RDD.  
+  
+```python
+if __name__ == "__main__":
+    conf = SparkConf().setAppName("wordCounts").setMaster("local[3]")
+    sc = SparkContext(conf = conf)
+
+    lines = sc.textFile("in/word_count.text")
+    wordRdd = lines.flatMap(lambda line: line.split(" "))  # still use flatmap 
+    wordPairRdd = wordRdd.map(lambda word: (word, 1))      # each key will have word,1
+
+    wordCounts = wordPairRdd.reduceByKey(lambda x, y: x + y) # sum together counts of each word using reducebyKey this will 
+    for word, count in wordCounts.collect(): # collects them to driver program
+        print("{} : {}".format(word, count))
+
+```  
+OUT:  
+```
+city : 2 
+rail : 1
+..
+etc
+```
 
 
 
