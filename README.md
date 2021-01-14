@@ -3,25 +3,26 @@
 
 These are a list of notes, learning materials and resources for learning Pyspark, Tableu and other datalake technologies and terms.   
 
-## Learning Path
-
+## Navigation
 
     
-| Topics | 
-|-------|
-| [pyspark](#Pyspark) |
-| [RDD](#RDD) |
-| [Pair RDDs](#Pair-RDDs) |
-| [Airflow](#Airflow) | 
-| Tableu | 
-| Hive Tables |
-| [Data Engineer](#Data-Engineer)|
-|[Useful Links](#Useful-Links)|
-|[Notes](#Notes)|
+| Topics | Sub Topics |
+|-------|-------------|
+| [Intro](#Intro)      |   |
+| **[PYSPARK](#Pyspark)**  |  |
+|  	  |  [RDD](#RDD)  |
+|     | [Summary of Actions/Transformations](#Summary-of-Actions/Transformations)| 
+|     | [Pair RDDs](#Pair-RDDs) |
+| **[AIRFLOW](#Airflow)** |     |
+| **TABLEU** |     |
+| Hive Tables |    |
+| [Data Engineer](#Data-Engineer)|    |
+|[Useful Links](#Useful-Links)|    |
+|[Notes](#Notes)|    |
 
 
 
-## Spark   
+## Intro   
   
 ![](images/components.png)  
   
@@ -57,7 +58,10 @@ spark-submit myprogram.py
 
 
 # RDD
+    
+[Navigation](#Navigation)  
   
+
 Resilient Distributed Dataset (RDD)    
   
 **"RDD IS A CAPSULATION AROUND A LARGE DATASET"**  
@@ -239,6 +243,11 @@ if __name__ == "__main__":
 	- `(line)[3]` means taking the fourth split  
 
 To run, input `spark-submit path.py`
+  
+## Summary of Actions/Transformations
+  
+[Navigation](#Navigation)    
+
 
 ## Popular transformations
 
