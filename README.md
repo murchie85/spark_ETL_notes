@@ -527,7 +527,67 @@ Most benefited by partitioning:
 - combineByKey
 - lookup  
   
+Running **reduceByKey** on a prepartitioned RDD works best because it causes all values for each key to be computed locally on one node, requiring only the **locally reduced** value to be sent from each worker node to master.  
+  
+## Operations to affect negatively partitioning.  
+  
+- Map function could cause new RDD to forget parents partitioning info, so in theory could map could change the key of each element in the RDD.  
+  
+**SOLUTION** prefer **mapValues** over map operations (especially when partitioning).  
+  
+## Join Operation  
+      
+Most common PAIR-RDD   
+  
+
+![](https://i.stack.imgur.com/vPPHT.png)  
+  
+
+**innerJoin** is most common.  
+Only return both RDDs that have common key:    
+Drops any that don't fit the and condition.  
+
+```python
+def join(self, other, numPartitions=None):
+```
+
+**outerJoin**  
    
+We want keys as long as they appear in **one of the RDD**  
+This prevents dropping fields.  
+    
+Output is a touple from source and option from `other`  
+  
+example out   
+```
+('Tom',(28,None))
+('john',(22, 'UK'))
+```  
+ - Second column is a touple, first is the part we need (left join), second is optional (the other field)  
+
+
+For full join, all keys are there.  
+  
+## Best practices   
+  
+- Try to do distinct where possible, as joins can **dramatically** expand the size of the data.  
+- Joins are **expensive** 
+- We may need to do a **shuffled hash join** (default) 
+	- this ensures keys are on the same partition  
+	- it can be more expensive because it requires a shuffle  
+
+**Avoid shuffle** if both RDDs have a known partitioner. If they have same data, they can be **collocated**   
+  
+**recommended** to call `partitionBy` on the two join RDD with the same **paritioner** before joining them.  
+  
+```python 
+ from pyspark.rdd import portable_hash 
+ ages.paritionBy(20, paritionFunc= portable_hash)
+ addresses.paritionBy(20,paritionFunc=portable_hash)
+ ```  
+ - both Ages rdd and addresses rdd have parition by on them.  
+ 
+
 
 ## Actions and Transformations
   
