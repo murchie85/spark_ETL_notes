@@ -73,6 +73,8 @@ Resilient Distributed Dataset (RDD)
 ![](images/lazy.png)  
   
 Spark only really starts computation (loading etc) once it sees an action and not a transformation.  
+ 
+- Lazy eval to reduce operations.  
 
 
 RDDs have two operations: 
@@ -83,6 +85,8 @@ RDDs have two operations:
 - **Actions**  
 	- Compute a result based on an RDD
 	- i.e. First which returns the first element in an RDD
+  
+- Check return type to tell the difference.  
 
 ### Filter Transformation example  
 
@@ -264,6 +268,35 @@ To run, input `spark-submit path.py`
 - **reduce**
 	- returns a single value, like aggregating 
 
+  
+
+## Persistence 
+  
+- Its expensive to reuse actions on the same actions every time  
+- Use `persist()` method on RDD.  
+	- It keeps it in memory accross nodes via **caching**  
+
+```python
+conf = SparkConf().setAppName("persist").setMaster("local[*]")
+sc = SparkContext(conf = conf)
+
+inputIntegers = [1, 2, 3, 4, 5]
+integerRdd = sc.parallelize(inputIntegers)
+
+integerRdd.persist(StorageLevel.MEMORY_ONLY)
+
+integerRdd.reduce(lambda x, y: x*y)  # Now this function can run quicker 
+
+integerRdd.count()  # This won parellise again 
+```  
+  
+## Storage Level  
+   
+Each persisted RDD can be stored using a **different storage level**  
+ 
+![](#images/storage.png)  
+  
+- `RDD.cache()` selects the default of memory only.  
 
 
 ## REGEX Tips  
@@ -280,6 +313,8 @@ To run, input `spark-submit path.py`
 ```python
 validNumbers = numbers.filter(lambda: number: number)
 ```
+  
+
 
 ## Airflow  
 
