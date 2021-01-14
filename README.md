@@ -64,6 +64,16 @@ Resilient Distributed Dataset (RDD)
 - Spark shards and distributes your data under the hood 
 	- It parellelizes the operations you perform on them . 
 
+- RDDs are distributed  
+	- broken into multiple pieces called **partitions** 
+	- These are divided accross  **clusters**  
+	- 8 partitions could run on 8 nodes
+	- Auto done on spark, and **immutable** don't change to keep them resilient.  
+  
+![](images/lazy.png)  
+  
+Spark only really starts computation (loading etc) once it sees an action and not a transformation.  
+
 
 RDDs have two operations: 
 
@@ -218,6 +228,11 @@ if __name__ == "__main__":
 
 To run, input `spark-submit path.py`
 
+## Popular transformations
+
+- filter
+- map  
+  
 
 ## Popular Set transformations  
   
