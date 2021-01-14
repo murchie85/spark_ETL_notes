@@ -294,7 +294,7 @@ integerRdd.count()  # This won parellise again
    
 Each persisted RDD can be stored using a **different storage level**  
  
-![](#images/storage.png)  
+![](images/storage.png)  
   
 - `RDD.cache()` selects the default of memory only.  
 
