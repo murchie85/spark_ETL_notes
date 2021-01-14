@@ -189,7 +189,7 @@ Methods:
   
 
 
-- **Transformations**  
+**Transformations**  
 
 ```python
 lines           = sc.textFile("in/Uppercase.txt")
@@ -198,7 +198,7 @@ linesWithFriday = lines.filter(lambda line: "Friday" in line)
 	- Applies a function to RDD and returns a new one.
 	- i.e. filter an RDD to produce a subset RDD
 
-- **Actions**  
+**Actions**  
 
 ```python
 lines           = sc.textFile("in/Uppercase.txt")
