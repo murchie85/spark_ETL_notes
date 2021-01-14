@@ -39,7 +39,8 @@ These are a list of notes, learning materials and resources for learning Pyspark
 ```
 spark-submit myprogram.py
 ```  
-  
+    
+- Two output files because of two cores used.  
 
 
 
@@ -146,8 +147,7 @@ cleanedLines = lines.filter(lambda line: line.strip())
 ## Map transformation  
 
 - Applies a function to each element in the RDD  
-- Result being the new value of each applied 
-  
+- Result being the new value of each applied  
 - it can be used to make `http requests` to each URL in our input RDD, or calculate the square root of each number.  
       
 
@@ -157,8 +157,114 @@ cleanedLines = lines.filter(lambda line: line.strip())
 URLs = sc.textFile("in/urls.text")
 URLs.map(makeHttpRequest)
 ```
+  
+**Note** Output can be a new type.  
+  
+```python 
+lines   = sc.textFile("in/uppercase.text")   # string 
+lengths = lines.map(lambda line: len(line))  # int  
+```  
+  
+## Problem Example    
+  
+- This is from the tutorial folder, only available to me.  
+  
+![](images/airport.png) 
+ 
+- Parse input data, find airports from usa only and return their name, city  
+- sample out looks like `"blah airport", "blah city"`
+
+  
+```python
+import sys
+sys.path.insert(0, '.') # Adding root directory to current path
+from pyspark import SparkContext, SparkConf
+from commons.Utils import Utils  # Comma delimiter class
+
+def splitComma(line: str):
+    splits = Utils.COMMA_DELIMITER.split(line)
+    return "{}, {}".format(splits[1], splits[2])
+
+if __name__ == "__main__":
+    conf = SparkConf().setAppName("airports").setMaster("local[2]")
+    sc = SparkContext(conf = conf)
+
+    airports = sc.textFile("in/airports.text")   ## Load input
+    airportsInUSA = airports.filter(lambda line : Utils.COMMA_DELIMITER.split(line)[3] == "\"United States\"")
+
+    airportsNameAndCityNames = airportsInUSA.map(splitComma)
+    airportsNameAndCityNames.saveAsTextFile("out/airports_in_usa.text")
+```  
+
+## breakdown
+    
+`conf = SparkConf().setAppName("airports").setMaster("local[*]")`
+- This line sets the applicationname, in conf object, used a lot in the `sparkweb ui`  
+- `.setMaster("local[2]")` sets the master node URL and number of nodes.   
+  
+`sc = SparkContext(conf = conf)`  
+- **Main entry point** 
+- Creates the sparkcontext object 
+
+```
+ airportsInUSA = airports.filter(lambda line : Utils.COMMA_DELIMITER.split(line)[3] == "\"United States\"")
+```
+- Filter the string
+	- Takes function as argument 
+	- the function takes a string as argument
+	- Applies to each value 
+	- Delimiter gets all commas, except those in `","`  
+	- `(line)[3]` means taking the fourth split  
+
+To run, input `spark-submit path.py`
 
 
+## Popular Set transformations  
+  
+- Run on Single RDD 
+	- sample
+	- Distinct
+- Run on two or more RDDs
+	- **Union**
+		- merges
+	- **Intersection**
+		- identifies common elements and returns them deduped
+	- **Subtract**
+		- A - B returns A values that are not in B
+	- **Cartesian product**
+		- returns all possible pairs of A and B 
+
+## Popular Actions  
+  
+- **Collect**
+	- Retrieves entire RDD and returns 
+- **count**
+	- count unique elements
+- **countByValue**
+	- 
+- **Take**
+	- takes n element from rdd i.e. `take(3)` returns first three roles
+- **saveAsTextFile**
+	- writes to HDFS or amazon s3
+- **reduce**
+	- returns a single value, like aggregating 
+
+
+
+## REGEX Tips  
+
+#### Split by tab  
+  
+`line.split("\t")`  
+
+#### Filter empty using boolean  
+    
+- lambda returns true/false for each  
+- filter just keeps the true values
+
+```python
+validNumbers = numbers.filter(lambda: number: number)
+```
 
 ## Airflow  
 
@@ -187,7 +293,9 @@ URLs.map(makeHttpRequest)
 [DataScience roles](https://www.jeffersonfrank.com/insights/aws-big-data-roles?utm_source=DSMN8&utm_medium=LinkedIn)
   
 [SAS](https://www.sas.com/en_gb/insights/data-management/what-is-etl.html)  
-    
+      
+
+
 ## Data Engineer
   
 
