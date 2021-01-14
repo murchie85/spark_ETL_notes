@@ -12,6 +12,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 | **[PYSPARK](#Pyspark)**  |  |
 |  	  |  [RDD](#RDD)  |
 |     | [Pair RDDs](#Pair-RDDs) |
+|     | [PairRDD Operations](#PairRDD-Operations) |
 |     | [Actions and Transformations](#Actions-and-Transformations)| 
 |     | [Examples](#Examples)
 |     | [Sample Problems](#Sample-Problems)
@@ -204,11 +205,15 @@ pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_regular_rdd")
 2. we map the rdd and turn it into touple rdd/ pair rdd  
   
 
-## Transformations on pair rdds  
+## PairRDD Operations  
   
+   
+[Navigation](#Navigation)  
+    
+
 - support same functions as regular rdds  
 - but we need to pass functions that work on **tuples** only  
-  
+   
 ### filter  
     
 - generate pair rdd
@@ -304,16 +309,146 @@ OUT:
 ```
 city : 2 
 rail : 1
-..
+...
 etc
+```  
+  
+## bedroom problem 
+- a big csv with lots of column s
+- we want the average price for different bedroms 
+
+like this:  
+
+    
+```
+       (3, 325000)
+       (1, 266356)
+       (2, 325000)
+```
+  
+  
+
+
+```python
+if __name__ == "__main__":
+    conf = SparkConf().setAppName("avgHousePrice").setMaster("local[3]")
+    sc = SparkContext(conf = conf)
+
+    lines = sc.textFile("in/RealEstate.csv")
+    cleanedLines = lines.filter(lambda line: "Bedrooms" not in line) ## keep bedroom lines
+
+    # create bed/price tuple
+    # avg count is an object/class
+    housePricePairRdd = cleanedLines.map(lambda line: \
+        (line.split(",")[3], AvgCount(1, float(line.split(",")[2]))))
+
+    # get totals so we can average totals at the end
+    # use averagecount class (external file)
+    housePriceTotal = housePricePairRdd \
+        .reduceByKey(lambda x, y: AvgCount(x.count + y.count, x.total + y.total))
+
+    # print intermediate pair rdd 
+    print("housePriceTotal: ")
+    for bedroom, avgCount in housePriceTotal.collect():
+        print("{} : ({}, {})".format(bedroom, avgCount.count, avgCount.total))
+    
+    # aerage values 
+    housePriceAvg = housePriceTotal.mapValues(lambda avgCount: avgCount.total / avgCount.count)
+    print("\nhousePriceAvg: ")
+    for bedroom, avg in housePriceAvg.collect():
+        print("{} : {}".format(bedroom, avg))
+
+
+
 ```
 
 
+## Group by Key  
+  
+- if we are happy with the RDD, this will group all values to one key
+- key with iterable values  
+  
+Instead of a line for each, we want it like this:  
 
+```
+"Canada", ["Bagotville", "Montreal", "Coronation", ...]
+```
+**solution**  
+  
+```python
 
+if __name__ == "__main__":
 
+    conf = SparkConf().setAppName("airports").setMaster("local[*]")
+    sc = SparkContext(conf = conf)
 
+    lines = sc.textFile("in/airports.text")  # string rdd
 
+    # map to pair RDD
+    countryAndAirportNameAndPair = lines.map(lambda airport:\
+         (Utils.COMMA_DELIMITER.split(airport)[3],
+          Utils.COMMA_DELIMITER.split(airport)[1]))
+
+    # apply group simply
+    airportsByCountry = countryAndAirportNameAndPair.groupByKey()
+
+    # print out
+    for country, airportName in airportsByCountry.collectAsMap().items():
+        print("{}: {}".format(country, list(airportName)))
+```
+
+**Learn more about collect**  
+```
+    for country, airportName in airportsByCountry.collectAsMap().items():
+        print("{}: {}".format(country, list(airportName)))
+```
+  
+## reduceByKey vs groupByKey  
+  
+```
+groupByKey + [reduce,map,mapValues]
+```  
+Can be replaced by aggregation function such as `reduceByKey`  
+  
+```python
+if __name__ == "__main__":
+    conf = SparkConf().setAppName('GroupByKeyVsReduceByKey').setMaster("local[*]") 
+    sc = SparkContext(conf = conf)
+
+    # list of words to pairRDD
+    words = ["one", "two", "two", "three", "three", "three"]
+    wordsPairRdd = sc.parallelize(words).map(lambda word: (word, 1))
+
+    # this aggregates number for each word 
+    wordCountsWithReduceByKey = wordsPairRdd \
+        .reduceByKey(lambda x, y: x + y) \
+        .collect()
+    print("wordCountsWithReduceByKey: {}".format(list(wordCountsWithReduceByKey)))
+
+    ## another method group, then map and collect
+    wordCountsWithGroupByKey = wordsPairRdd \
+        .groupByKey() \
+        .mapValues(len) \
+        .collect()
+    print("wordCountsWithGroupByKey: {}".format(list(wordCountsWithGroupByKey)))
+``` 
+  
+  
+- Groupbykey is slower because there is more shuffling around of keys into bins first
+- reduce by just adds up each keys values   
+  
+## sortByKey  
+  
+- sort by key if there is defined order   
+  
+#### sortByKey in reverse order  
+  
+```python
+def sortByKey(self, ascending=True, numPartitions=None, keyfunc=lambda x: x):
+	housePriceAvg.sortByKey(ascending=False)
+```  
+  
+**problem** - sort our average house price by bedrooms in order 
 
 
 
