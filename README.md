@@ -11,8 +11,9 @@ These are a list of notes, learning materials and resources for learning Pyspark
 | [Intro](#Intro)      |   |
 | **[PYSPARK](#Pyspark)**  |  |
 |  	  |  [RDD](#RDD)  |
-|     | [Summary of Actions/Transformations](#Summary-of-Actions/Transformations)| 
 |     | [Pair RDDs](#Pair-RDDs) |
+|     | [Actions and Transformations](#Actions-and-Transformations)| 
+|     | [Sample Problems](#Sample-Problems)
 |     | [Persistence and Caching](#Persistence-and-Caching) |
 |     | [REGEX Tips](#REGEX-Tips) |
 | **[AIRFLOW](#Airflow)** |     |
@@ -89,35 +90,9 @@ Resilient Distributed Dataset (RDD)
 Spark only really starts computation (loading etc) once it sees an action and not a transformation.  
  
 - Lazy eval to reduce operations.  
-
-
-RDDs have two operations: 
-
-- **Transforamtions**  
-	- Applies a function to RDD and returns a new one.
-	- i.e. filter an RDD to produce a subset RDD
-- **Actions**  
-	- Compute a result based on an RDD
-	- i.e. First which returns the first element in an RDD
   
-- Check return type to tell the difference.  
-
-### Filter Transformation example  
-
-```python
-lines           = sc.textFile("in/Uppercase.txt")
-linesWithFriday = lines.filter(lambda line: "Friday" in line)
-```
-
   
-### First Action example  
-
-```python
-lines           = sc.textFile("in/Uppercase.txt")
-firstLine       = lines.first()
-```  
-    
-
+  
 ## General Spark Flow with RDDs  
   
 1. Generate **initial RDDS** from external Data.  
@@ -159,7 +134,120 @@ lines = sc.textFile("in/uppercase.txt")
 ```
     
 More realistic approach is using **HDFS** or db integration with **JDBC**, **CASSANDRA**, **ELASTISEARCH**  
+  
+  
+
+
+  
+## Pair RDDs
+  
+
+   
+[Navigation](#Navigation)  
     
+  
+
+
+- key value pairs 
+- each row is one key - multiple values    
+  
+A **pair RDD** is a particular RDD that stores key/value pairs, we can create them from normal RDDs .  
+
+Methods:  
+  
+- return pair RDDs from **tuple**  
+- convert RDD to pair RDD  using **parallelie** function.   
+  
+```python
+    conf = SparkConf().setAppName("create").setMaster("local")
+    sc = SparkContext(conf = conf)
+
+    tuples = [("Lily", 23), ("Jack", 29), ("Mary", 29), ("James", 8)]
+    pairRDD = sc.parallelize(tuples)
+
+    pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_tuple_list")
+
+```
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Actions and Transformations
+  
+[Navigation](#Navigation)   
+  
+
+
+- **Transformations**  
+```python
+lines           = sc.textFile("in/Uppercase.txt")
+linesWithFriday = lines.filter(lambda line: "Friday" in line)
+```
+
+	- Applies a function to RDD and returns a new one.
+	- i.e. filter an RDD to produce a subset RDD
+- **Actions**  
+```python
+lines           = sc.textFile("in/Uppercase.txt")
+firstLine       = lines.first()
+```  
+	- Compute a result based on an RDD
+	- i.e. First which returns the first element in an RDD
+  
+**Check return type to tell the difference.**
+
+
+  
+
+
+## Popular transformations
+
+- filter
+- map  
+  
+
+## Popular Set transformations  
+  
+- Run on Single RDD 
+	- sample
+	- Distinct
+- Run on two or more RDDs
+	- **Union**
+		- merges
+	- **Intersection**
+		- identifies common elements and returns them deduped
+	- **Subtract**
+		- A - B returns A values that are not in B
+	- **Cartesian product**
+		- returns all possible pairs of A and B 
+
+## Popular Actions  
+  
+- **Collect**
+	- Retrieves entire RDD and returns 
+- **count**
+	- count unique elements
+- **countByValue**
+	- 
+- **Take**
+	- takes n element from rdd i.e. `take(3)` returns first three roles
+- **saveAsTextFile**
+	- writes to HDFS or amazon s3
+- **reduce**
+	- returns a single value, like aggregating 
+  
+
 ## Filter Transformation
 
 
@@ -192,8 +280,20 @@ URLs.map(makeHttpRequest)
 lines   = sc.textFile("in/uppercase.text")   # string 
 lengths = lines.map(lambda line: len(line))  # int  
 ```  
-  
-## Problem Example    
+      
+
+
+
+
+
+
+
+
+
+
+   
+## Sample Problems
+
   
 - This is from the tutorial folder, only available to me.  
   
@@ -246,48 +346,26 @@ if __name__ == "__main__":
 
 To run, input `spark-submit path.py`
   
-## Summary of Actions/Transformations
-  
-[Navigation](#Navigation)    
-
-
-## Popular transformations
-
-- filter
-- map  
   
 
-## Popular Set transformations  
-  
-- Run on Single RDD 
-	- sample
-	- Distinct
-- Run on two or more RDDs
-	- **Union**
-		- merges
-	- **Intersection**
-		- identifies common elements and returns them deduped
-	- **Subtract**
-		- A - B returns A values that are not in B
-	- **Cartesian product**
-		- returns all possible pairs of A and B 
 
-## Popular Actions  
-  
-- **Collect**
-	- Retrieves entire RDD and returns 
-- **count**
-	- count unique elements
-- **countByValue**
-	- 
-- **Take**
-	- takes n element from rdd i.e. `take(3)` returns first three roles
-- **saveAsTextFile**
-	- writes to HDFS or amazon s3
-- **reduce**
-	- returns a single value, like aggregating 
+
+
+
+
+
+
+
+
+
+
+
+
 
   
+
+
+
 
 ## Persistence and Caching
    
@@ -335,36 +413,19 @@ There are factors to consider
   
 
   
-## Pair RDDs
-  
-
-   
-[Navigation](#Navigation)  
-    
-  
 
 
-- key value pairs 
-- each row is one key - multiple values    
-  
-A **pair RDD** is a particular RDD that stores key/value pairs, we can create them from normal RDDs .  
 
-Methods:  
-  
-- return pair RDDs from **tuple**  
-- convert RDD to pair RDD  using **parallelie** function.   
-  
-```python
-    conf = SparkConf().setAppName("create").setMaster("local")
-    sc = SparkContext(conf = conf)
 
-    tuples = [("Lily", 23), ("Jack", 29), ("Mary", 29), ("James", 8)]
-    pairRDD = sc.parallelize(tuples)
 
-    pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_tuple_list")
 
-```
-  
+
+
+
+
+
+
+
 
   
 ## REGEX Tips
