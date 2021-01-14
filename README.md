@@ -339,6 +339,7 @@ if __name__ == "__main__":
 
     # create bed/price tuple
     # avg count is an object/class
+    # key = '1','2','3' beds value = average number i.e. 3500
     housePricePairRdd = cleanedLines.map(lambda line: \
         (line.split(",")[3], AvgCount(1, float(line.split(",")[2]))))
 
@@ -450,7 +451,83 @@ def sortByKey(self, ascending=True, numPartitions=None, keyfunc=lambda x: x):
   
 **problem** - sort our average house price by bedrooms in order 
 
+```python
+if __name__ == "__main__":
+    conf = SparkConf().setAppName("averageHousePriceSolution").setMaster("local[*]")
+    sc = SparkContext(conf = conf)
 
+    ## same as before, but use int for our key (so we can sort)
+    lines = sc.textFile("in/RealEstate.csv")
+    cleanedLines = lines.filter(lambda line: "Bedrooms" not in line)
+    housePricePairRdd = cleanedLines.map(lambda line: \
+    ((int(float(line.split(",")[3]))), AvgCount(1, float(line.split(",")[2]))))
+
+    # same as before
+    housePriceTotal = housePricePairRdd.reduceByKey(lambda x, y: \
+        AvgCount(x.count + y.count, x.total + y.total))
+
+    housePriceAvg = housePriceTotal.mapValues(lambda avgCount: avgCount.total / avgCount.count)
+
+    # this is where we sort
+    sortedHousePriceAvg = housePriceAvg.sortByKey()
+
+    for bedrooms, avgPrice in sortedHousePriceAvg.collect():
+        print("{} : {}".format(bedrooms, avgPrice))
+
+```  
+  
+## sortBy transformation  
+    
+- this lets us sort PAIR RDD by value
+- build in, we just use it   
+
+```python
+sortedWordCountPairs = wordToCountPairs.sortBy(lambda wordCount: wordCount[1], ascending=False)
+```
+  
+FULL EXAMPLE WITH WORD SORT 
+```python  
+conf = SparkConf().setAppName("wordCounts").setMaster("local[*]")
+sc = SparkContext(conf = conf)
+
+lines = sc.textFile("in/word_count.text")
+## input is just a giant text file no columns
+wordRdd = lines.flatMap(lambda line: line.split(" "))
+
+wordPairRdd = wordRdd.map(lambda word: (word, 1)) # myword: 1
+wordToCountPairs = wordPairRdd.reduceByKey(lambda x, y: x + y) # sum up
+
+sortedWordCountPairs = wordToCountPairs \
+    .sortBy(lambda wordCount: wordCount[1], ascending=False)
+
+for word, count in  sortedWordCountPairs.collect():
+    print("{} : {}".format(word, count))
+
+```    
+  
+## Partitioning 
+  
+- advanced
+- Reduce communication costs, by having pairs grouped on same nodes 
+- In general **avoid groupbykey** as it has high network cost between nodes  
+
+![](images/parition.png)
+  
+If you do the partition step first, then no matter how many times you group, it will have keys on the same node.  
+This makes it faster.  
+It's **important** we persist after partition or it will keep doing it each time.   
+  
+Most benefited by partitioning:  
+  
+- join
+- leftOuterJoin
+- rightOuterJoin
+- groupByKey
+- reduceByKey
+- combineByKey
+- lookup  
+  
+   
 
 ## Actions and Transformations
   
