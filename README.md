@@ -214,14 +214,11 @@ firstLine       = lines.first()
 
 
 ## Popular transformations
-
-- filter
-- map  
   
-
-## Popular Set transformations  
   
 - Run on Single RDD 
+	- filter
+	- map  
 	- sample
 	- Distinct
 - Run on two or more RDDs
