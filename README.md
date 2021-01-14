@@ -13,6 +13,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 |  	  |  [RDD](#RDD)  |
 |     | [Summary of Actions/Transformations](#Summary-of-Actions/Transformations)| 
 |     | [Pair RDDs](#Pair-RDDs) |
+|     | [Persistence and Caching](#Persistence-and-Caching) |
 | **[AIRFLOW](#Airflow)** |     |
 | **TABLEU** |     |
 | Hive Tables |    |
@@ -287,8 +288,11 @@ To run, input `spark-submit path.py`
 
   
 
-## Persistence 
-  
+## Persistence and Caching
+   
+[Navigation](#Navigation)  
+    
+
 - Its expensive to reuse actions on the same actions every time  
 - Use `persist()` method on RDD.  
 	- It keeps it in memory accross nodes via **caching**  
