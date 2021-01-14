@@ -11,6 +11,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 |-------|
 | [pyspark](#Pyspark) |
 | [RDD](#RDD) |
+| [Pair RDDs](#Pair-RDDs) |
 | [Airflow](#Airflow) | 
 | Tableu | 
 | Hive Tables |
@@ -20,6 +21,13 @@ These are a list of notes, learning materials and resources for learning Pyspark
 
 
 
+## Spark   
+  
+![](images/components.png)  
+  
+- Spark streaming uses API like spark core  
+- graphx extends RDD with properties for each vertice and edge.    
+  
 
 ## Pyspark
     
@@ -327,6 +335,34 @@ There are factors to consider
 validNumbers = numbers.filter(lambda: number: number)
 ```
   
+## Pair RDDs
+
+- key value pairs 
+- each row is one key - multiple values    
+  
+A **pair RDD** is a particular RDD that stores key/value pairs, we can create them from normal RDDs .  
+
+Methods:  
+  
+- return pair RDDs from **tuple**  
+- convert RDD to pair RDD  using **parallelie** function.   
+  
+```python
+    conf = SparkConf().setAppName("create").setMaster("local")
+    sc = SparkContext(conf = conf)
+
+    tuples = [("Lily", 23), ("Jack", 29), ("Mary", 29), ("James", 8)]
+    pairRDD = sc.parallelize(tuples)
+
+    pairRDD.coalesce(1).saveAsTextFile("out/pair_rdd_from_tuple_list")
+
+```
+
+  
+
+## Spark Architecture   
+  
+
 
 
 ## Airflow  
