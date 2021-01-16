@@ -9,12 +9,14 @@ These are a list of notes, learning materials and resources for learning Pyspark
 | Topics | Sub Topics |
 |-------|-------------|
 | [Intro](#Intro)      |   |
+| [Quick Notes ](#Quick-Notes) |   |
 | **[PYSPARK](#Pyspark)**  |  |
 |  	  |  [RDD](#RDD)  |
 |     | [Pair RDDs](#Pair-RDDs) |
 |     | [PairRDD Operations](#PairRDD-Operations) |
 |     | [Actions and Transformations](#Actions-and-Transformations)| 
 |     | [Examples](#Examples)
+|     | [Advanced Topics](#Advanced-Topics)
 |     | [Sample Problems](#Sample-Problems)
 |     | [Persistence and Caching](#Persistence-and-Caching) |
 |     | [REGEX Tips](#REGEX-Tips) |
@@ -57,10 +59,25 @@ spark-submit myprogram.py
 - Two output files because of two cores used.  
 
 
+## Quick Notes
+  
+- Get accumulator value using 
+- Get rdd values using collect or map
+```python
+rdd.map(lambda x: (x[0], x[2], x[4])) # get first, thrid and fifth element of each
+```
+  
+- Make comma delimiter utils function
+  
+- Run Pyspark in jupytern notebooks  
+  
+Add the following to `~/.zshrc`  
 
 
-
-
+```
+export PYSPARK_DRIVER_PYTHON=jupyter
+export PYSPARK_DRIVER_PYTHON_OPTS='notebook'
+```
 
 # RDD
     
@@ -571,8 +588,8 @@ For full join, all keys are there.
 ## Best practices   
   
 - Try to do distinct where possible, as joins can **dramatically** expand the size of the data.  
-- Joins are **expensive** 
-- We may need to do a **shuffled hash join** (default) 
+- Joins are **expensive** may incure large data transfer.  
+- We may need to do a **shuffled hash join** if not collacated(default) 
 	- this ensures keys are on the same partition  
 	- it can be more expensive because it requires a shuffle  
 
@@ -586,7 +603,7 @@ For full join, all keys are there.
  addresses.paritionBy(20,paritionFunc=portable_hash)
  ```  
  - both Ages rdd and addresses rdd have parition by on them.  
- 
+
 
 
 ## Actions and Transformations
@@ -690,19 +707,141 @@ lines   = sc.textFile("in/uppercase.text")   # string
 lengths = lines.map(lambda line: len(line))  # int  
 ```  
       
+# Advanced Topics
+
+   
+[Navigation](#Navigation)  
+    
+  
+## Accumulators  
+  
+- Variables that aggregate info accross executors 
+- We could count records corrupted or events executed  
+- Accumulators are **write only** so tasks can't access them. only read.   
+  
+
+```python 
+
+myaccumulator.add(1)
+     
+myaccumulator.value
+```  
+  
+
+Looking at the stack csv example, lots of columns, lots of empty fields we want to  
+  
+- How many records do we have in this survey result?
+- How many records are missing salary middle point? 
+- how many records from canada?  
+  
+```python
+if __name__ == "__main__":
+    conf = SparkConf().setAppName('StackOverFlowSurvey').setMaster("local[*]")
+    sc = SparkContext(conf = conf)
+    total = sc.accumulator(0)                   # counts tot records
+    missingSalaryMidPoint = sc.accumulator(0)   # counts missing sal point
+    responseRDD = sc.textFile("in/2016-stack-overflow-survey-responses.csv")
+
+    def filterResponseFromCanada(response):
+        splits = Utils.COMMA_DELIMITER.split(response)
+        total.add(1)                      ## increments accumulator
+        if not splits[14]:
+            missingSalaryMidPoint.add(1)  ## Inrements accumulator
+        return splits[2] == "Canada"
+
+    responseFromCanada = responseRDD.filter(filterResponseFromCanada)
+    print("Count of responses from Canada: {}".format(responseFromCanada.count()))
+    print("Total count of responses: {}".format(total.value))
+    print("Count of responses missing salary middle point: {}" \
+        .format(missingSalaryMidPoint.value))
+```
+
+- set up 2 accumulators
+- set up our filtercanada method
+- apply filter transform to filtercanada method 
+- we call `value` method on the **accumulators** to access their value. 
+  
+
+We could use **reduce** or **reduceByKey** but this approach is more efficient and at a different granularity from RDDs.  
+  
+
+
+  
+## Broadcast Variables  
+  
+- Variables we want to share throughout our cluster  
+- Keep a **read only** var cached on each machine (rather than shipping a copy with tasks)
+- They cold be used to give each node a copy of a **large dataset** in a efficient manner  
+- All broadcast vars will be kept on all worker nodes for one or more operations.  
+  
+  
+**procedure**  
+  
+1. Create a broadcast variable T. by calling `sc.broadcast()` on an object of type T
+2. It can be anytype, as long as it's serializable   
+3. Var is sent only once
+4. The value is accessed by calling `value` method in each node   
+
+not optimal if too large, each node is designed for sliced smaller work.  
+- broadcast is only sent once, so can still be super efficent. 
 
 
 
 
+### Postcode example  
 
+Question to answer:  
+- How are those maker spaces distributed accross different regions in the UK  
+- we only have the postcode not the region, so we also add uk postcode data 
 
+```python
+def loadPostCodeMap():
+    lines = open("in/uk-postcode.csv", "r").read().split("\n")
+    splitsForLines = [Utils.COMMA_DELIMITER.split(line) for line in lines if line != ""]
+    return {splits[0]: splits[7] for splits in splitsForLines}
 
+def getPostPrefix(line: str):
+    splits = Utils.COMMA_DELIMITER.split(line)
+    postcode = splits[4]
+    return None if not postcode else postcode.split(" ")[0]
 
+if __name__ == "__main__":
+    conf = SparkConf().setAppName('UkMakerSpaces').setMaster("local[*]")
+    sc = SparkContext(conf = conf)
 
+    postCodeMap = sc.broadcast(loadPostCodeMap())
+
+    makerSpaceRdd = sc.textFile("in/uk-makerspaces-identifiable-data.csv")
+
+    regions = makerSpaceRdd \
+      .filter(lambda line: Utils.COMMA_DELIMITER.split(line)[0] != "Timestamp") \
+      .filter(lambda line: getPostPrefix(line) is not None) \
+      .map(lambda line: postCodeMap.value[getPostPrefix(line)] \
+        if getPostPrefix(line) in postCodeMap.value else "Unknow")
+
+    for region, count in regions.countByValue().items():
+        print("{} : {}".format(region, count))
+
+```
+  
+- `loadPostCodeMap()` creates postcode:region keypair dict from postcode csv
+- we broadcast it 
+- then pull in uk-makerspaces csv data 
+- then we map the two, to get the region using the postcode of makerspace  
+	- filter out headerline
+	- filter out not nons
+	- map 
+		- first extract value of postcode field by using `getPostPrefix` func we defined
+		- this gives us the first part of postcode 
+		- .. more analysis needed
 
    
 ## Sample Problems
 
+     
+[Navigation](#Navigation)  
+    
+  
   
 - This is from the tutorial folder, only available to me.  
   
