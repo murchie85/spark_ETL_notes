@@ -1,4 +1,34 @@
-# PySpark DataFrames
+# PySpark DataFrames  
+  
+[Home](../../README.md)  
+
+![](https://miro.medium.com/max/2560/1*qgkjkj6BLVS1uD4mw_sTEg.png)
+
+# DataFrame Basics  
+  
+### Key Points    
+  
+| Quick | Navigation| Jump | To | 
+|-------|-----------|---------|----------|
+|[Amending Schema](#Amending-Schema) |[Select Operations](#Select-Operations) |[Column operations](#Column-operations)| |
+| | | | |
+| | | | |
+
+**Setting up**  
+
+```python
+spark = SparkSession.builder.appName('Basics').getOrCreate() 
+df = spark.read.json(peopleFile)
+```  
+  
+**Useful commands**. 
+  
+```python  
+df.show()
+df.printSchema()
+df.describe().show()
+df.select('column').show()
+```
 
 
 ```python
@@ -85,6 +115,8 @@ df.describe().show()
     
 
 
+## Amending Schema
+
 
 ```python
 from pyspark.sql.types import StructField,StringType,IntegerType,StructType
@@ -120,6 +152,92 @@ df.printSchema() # now our age schema has been udpated
     root
      |-- age: integer (nullable = true)
      |-- name: string (nullable = true)
+    
+
+
+## Select Operations
+
+
+```python
+print(type(df['age']))
+print(type(df.select('age')))
+```
+
+    <class 'pyspark.sql.column.Column'>
+    <class 'pyspark.sql.dataframe.DataFrame'>
+
+
+
+```python
+df.head(2)
+```
+
+
+
+
+    [Row(age=None, name='Michael'), Row(age=30, name='Andy')]
+
+
+
+
+```python
+df.select('age').show()
+```
+
+    +----+
+    | age|
+    +----+
+    |null|
+    |  30|
+    |  19|
+    +----+
+    
+
+
+
+```python
+df.select(['age','name']).show()
+```
+
+    +----+-------+
+    | age|   name|
+    +----+-------+
+    |null|Michael|
+    |  30|   Andy|
+    |  19| Justin|
+    +----+-------+
+    
+
+
+## Column operations
+
+
+```python
+df.withColumn('newage',df['age']).show()
+```
+
+    +----+-------+------+
+    | age|   name|newage|
+    +----+-------+------+
+    |null|Michael|  null|
+    |  30|   Andy|    30|
+    |  19| Justin|    19|
+    +----+-------+------+
+    
+
+
+
+```python
+df.show()
+```
+
+    +----+-------+
+    | age|   name|
+    +----+-------+
+    |null|Michael|
+    |  30|   Andy|
+    |  19| Justin|
+    +----+-------+
     
 
 
