@@ -9,8 +9,8 @@ These are a list of notes, learning materials and resources for learning Pyspark
 | Topics | 
 |-------| 
 | [Intro and Notes](#Intro)      |   
-| [RDD](content/rdd/README.md)  |
 | [DataFrames](content/DataFrames/README.md)|
+| [RDD](content/rdd/README.md)  |
 | [Spark Architecture](#Spark-Architecture) |  
 | [REGEX Tips](#REGEX-Tips) |
 | **[AIRFLOW](#Airflow)** | 
