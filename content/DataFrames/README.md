@@ -12,7 +12,7 @@
 |-------|-----------|---------|----------|
 |[First DataFrame](#First-DataFrame)|[Amending Schema](#Amending-Schema) |[Select Operations](#Select-Operations) |[Column operations](#Column-operations)|
 | [SQL](#SQL)|[DataFrame Filter Operations](#DataFrame-Filter-Operations) |[Collect & Filter](#Collect-&-Filter) |[Groupby and Aggregate](#Groupby-and-Aggregate) |
-| | | | |
+|[Rounding Numbers](#Rounding-Numbers) |[Missing Data drop/fill](#Missing-Data) |[Sort and order](#Sort-and-order) | |
 | | | | |
 | | | | |
 
@@ -30,6 +30,7 @@ df.show()
 df.printSchema()
 df.describe().show()
 df.select('column').show()
+df.select(countDistinct('sales')).show()
 ```
 
 ## First DataFrame
@@ -628,6 +629,263 @@ group_data.agg({'sales':'sum'}).show()
     |     FB|    1220.0|
     |   MSFT|     967.0|
     +-------+----------+
+    
+
+
+### Import functions from spark 
+
+- add 
+```
+from pyspark.sql.functions
+```  
+  
+then hit tab  
+
+
+```python
+from pyspark.sql.functions import countDistinct,avg, stddev 
+```
+
+#### Count Distinct 
+
+
+```python
+df.select(countDistinct('sales')).show()
+```
+
+    +---------------------+
+    |count(DISTINCT sales)|
+    +---------------------+
+    |                   11|
+    +---------------------+
+    
+
+
+
+```python
+df.select(avg('sales')).show()
+```
+
+    +-----------------+
+    |       avg(sales)|
+    +-----------------+
+    |360.5833333333333|
+    +-----------------+
+    
+
+
+## USING ALIAS
+
+
+```python
+df.select(avg('sales').alias('Average Sales')).show()
+```
+
+    +-----------------+
+    |    Average Sales|
+    +-----------------+
+    |360.5833333333333|
+    +-----------------+
+    
+
+
+
+```python
+df.select(stddev('sales')).show()
+```
+
+    +------------------+
+    |stddev_samp(sales)|
+    +------------------+
+    |250.08742410799007|
+    +------------------+
+    
+
+
+### Rounding Numbers
+[Nav](#navigation)
+
+
+```python
+from pyspark.sql.functions import format_number
+df.select(stddev('sales')).show() # Formats title 
+```
+
+    +------------------+
+    |stddev_samp(sales)|
+    +------------------+
+    |250.08742410799007|
+    +------------------+
+    
+
+
+
+```python
+salesstd = df.select(stddev('sales'))
+salesstd.select(format_number('stddev_samp(sales)',2).alias('std')).show()  # formats number and adds alias
+```
+
+    +------+
+    |   std|
+    +------+
+    |250.09|
+    +------+
+    
+
+
+## Sort and order
+
+
+```python
+df.orderBy('Sales').show()
+```
+
+    +-------+-------+-----+
+    |Company| Person|Sales|
+    +-------+-------+-----+
+    |   GOOG|Charlie|120.0|
+    |   MSFT|    Amy|124.0|
+    |   APPL|  Linda|130.0|
+    |   GOOG|    Sam|200.0|
+    |   MSFT|Vanessa|243.0|
+    |   APPL|   John|250.0|
+    |   GOOG|  Frank|340.0|
+    |     FB|  Sarah|350.0|
+    |   APPL|  Chris|350.0|
+    |   MSFT|   Tina|600.0|
+    |   APPL|   Mike|750.0|
+    |     FB|   Carl|870.0|
+    +-------+-------+-----+
+    
+
+
+ #### Order by descending
+
+
+```python
+df.orderBy(df['Sales'].desc()).show()
+```
+
+    +-------+-------+-----+
+    |Company| Person|Sales|
+    +-------+-------+-----+
+    |     FB|   Carl|870.0|
+    |   APPL|   Mike|750.0|
+    |   MSFT|   Tina|600.0|
+    |     FB|  Sarah|350.0|
+    |   APPL|  Chris|350.0|
+    |   GOOG|  Frank|340.0|
+    |   APPL|   John|250.0|
+    |   MSFT|Vanessa|243.0|
+    |   GOOG|    Sam|200.0|
+    |   APPL|  Linda|130.0|
+    |   MSFT|    Amy|124.0|
+    |   GOOG|Charlie|120.0|
+    +-------+-------+-----+
+    
+
+
+# Missing Data
+
+[Nav](#navigation)
+  
+Three options. 
+  
+- Keep as nulls
+- Drop 
+- Fill in with other values. 
+
+
+
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('miss').getOrCreate()
+```
+
+
+```python
+df = spark.read.csv(str(sourcePath) + 'ContainsNull.csv', header = True, inferSchema = True)
+```
+
+
+```python
+df.show()
+df.printSchema()
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John| null|
+    |emp2| null| null|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+    root
+     |-- Id: string (nullable = true)
+     |-- Name: string (nullable = true)
+     |-- Sales: double (nullable = true)
+    
+
+
+#### Drop
+
+
+```python
+df.na.drop().show() # drops any row that has missing data
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+
+```python
+df.na.drop(thresh=2).show() ## only drop if 2 or more nulls
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John| null|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+
+```python
+df.na.drop(how='all').show() ## only drop if all columns are null 
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John| null|
+    |emp2| null| null|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+
+```python
+df.na.drop(subset='Sales').show()  ## Only drop if sales column is null
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
     
 
 
