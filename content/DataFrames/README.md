@@ -12,7 +12,7 @@
 |-------|-----------|---------|----------|
 |[First DataFrame](#First-DataFrame)|[Amending Schema](#Amending-Schema) |[Select Operations](#Select-Operations) |[Column operations](#Column-operations)|
 | [SQL](#SQL)|[DataFrame Filter Operations](#DataFrame-Filter-Operations) |[Collect & Filter](#Collect-&-Filter) |[Groupby and Aggregate](#Groupby-and-Aggregate) |
-|[Rounding Numbers](#Rounding-Numbers) |[Missing Data drop/fill](#Missing-Data) |[Sort and order](#Sort-and-order) | |
+|[Rounding Numbers](#Rounding-Numbers) |[Missing Data drop/fill](#Missing-Data) |[Sort and order](#Sort-and-order) |[Dates and Timestamps ](#Dates-and-Timestamps) |
 | | | | |
 | | | | |
 
@@ -23,15 +23,28 @@ spark = SparkSession.builder.appName('Basics').getOrCreate()
 df = spark.read.json(peopleFile)
 ```  
   
-**Useful commands**. 
-  
+## Useful Commands and Notes  
+
 ```python  
 df.show()
 df.printSchema()
 df.describe().show()
 df.select('column').show()
 df.select(countDistinct('sales')).show()
+```  
+    
+**Dont forget collect() function**   
+  
+  
+You need to collect the value to use it
+```python  
+  
+mysales = df.select('Sales') # Wont work, it only returns the dataframe
+  
+
+mysales = df.select('Sales').collect()  # this returns the object you can iterate
 ```
+  
 
 ## First DataFrame
 [Nav](#navigation)
@@ -886,6 +899,301 @@ df.na.drop(subset='Sales').show()  ## Only drop if sales column is null
     |emp3| null|345.0|
     |emp4|Cindy|456.0|
     +----+-----+-----+
+    
+
+
+### Fill    
+  
+Spark is smart enough to match up datatypes  
+Note schema is string string double. 
+```
+|-- Id: string (nullable = true)
+ |-- Name: string (nullable = true)
+ |-- Sales: double (nullable = true)
+```
+
+
+```python
+df.na.fill('FILL VALUE').show() ## Note it only overrides the nul string columns
+```
+
+    +----+----------+-----+
+    |  Id|      Name|Sales|
+    +----+----------+-----+
+    |emp1|      John| null|
+    |emp2|FILL VALUE| null|
+    |emp3|FILL VALUE|345.0|
+    |emp4|     Cindy|456.0|
+    +----+----------+-----+
+    
+
+
+
+```python
+df.na.fill(0).show() # Note it only fills in sales values
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John|  0.0|
+    |emp2| null|  0.0|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+## Specify values
+
+
+```python
+df.na.fill("No Name", subset = ['Name']).show()
+```
+
+    +----+-------+-----+
+    |  Id|   Name|Sales|
+    +----+-------+-----+
+    |emp1|   John| null|
+    |emp2|No Name| null|
+    |emp3|No Name|345.0|
+    |emp4|  Cindy|456.0|
+    +----+-------+-----+
+    
+
+
+### Fill with average values 
+
+
+```python
+from pyspark.sql.functions import mean
+```
+
+
+```python
+mean_val = df.select(mean(df['Sales'])).collect()  ## Collect so we get object back instead of just showing it
+```
+
+
+```python
+mean_val[0][0]  # you have to select its element
+```
+
+
+
+
+    400.5
+
+
+
+
+```python
+mean_sales = mean_val[0][0]
+```
+
+
+```python
+df.na.fill(mean_sales, ['Sales']).show()
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John|400.5|
+    |emp2| null|400.5|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+#### In one line
+
+
+```python
+df.na.fill(df.select(mean(df['Sales'])).collect()[0][0],['Sales']).show()
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John|400.5|
+    |emp2| null|400.5|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+# Populate Missing Values
+
+
+```python
+mean_val   = df.select(mean(df['Sales'])).collect() ## Get the Mean Value object
+mean_sales = mean_val[0][0]                         ## Extract the mean value sales figure
+df.na.fill(mean_sales, ['Sales']).show()            ## Fill in missing values with Mean 
+  
+## In one line    
+df.na.fill(df.select(mean(df['Sales'])).collect()[0][0],['Sales']).show()
+```
+
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John|400.5|
+    |emp2| null|400.5|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+    +----+-----+-----+
+    |  Id| Name|Sales|
+    +----+-----+-----+
+    |emp1| John|400.5|
+    |emp2| null|400.5|
+    |emp3| null|345.0|
+    |emp4|Cindy|456.0|
+    +----+-----+-----+
+    
+
+
+# Dates and Timestamps  
+  
+- We want to extract info from dates
+- it's same story, import functions and apply
+
+[Nav](#navigation)
+  
+
+
+```python
+from pyspark.sql import SparkSession
+spark = SparkSession.builder.appName('dates').getOrCreate()
+```
+
+
+```python
+df = spark.read.csv(str(sourcePath) + 'appl_stock.csv',header = True, inferSchema=True)
+```
+
+
+```python
+df.select(['Date','Open']).show(5)
+```
+
+    +-------------------+----------+
+    |               Date|      Open|
+    +-------------------+----------+
+    |2010-01-04 00:00:00|213.429998|
+    |2010-01-05 00:00:00|214.599998|
+    |2010-01-06 00:00:00|214.379993|
+    |2010-01-07 00:00:00|    211.75|
+    |2010-01-08 00:00:00|210.299994|
+    +-------------------+----------+
+    only showing top 5 rows
+    
+
+
+
+```python
+from pyspark.sql.functions import(dayofmonth,hour,dayofyear,month,year,weekofyear,format_number,date_format)
+```
+
+
+```python
+## Get Day of the Month. 
+
+df.select(dayofmonth(df['date'])).show(5) 
+```
+
+    +----------------+
+    |dayofmonth(date)|
+    +----------------+
+    |               4|
+    |               5|
+    |               6|
+    |               7|
+    |               8|
+    +----------------+
+    only showing top 5 rows
+    
+
+
+
+```python
+## Get Hour  
+
+df.select(hour(df['date'])).show(5)
+```
+
+    +----------+
+    |hour(date)|
+    +----------+
+    |         0|
+    |         0|
+    |         0|
+    |         0|
+    |         0|
+    +----------+
+    only showing top 5 rows
+    
+
+
+
+```python
+df.select(month(df['date'])).show(3)
+```
+
+    +-----------+
+    |month(date)|
+    +-----------+
+    |          1|
+    |          1|
+    |          1|
+    +-----------+
+    only showing top 3 rows
+    
+
+
+## Average Closing Price Per year  
+
+- First create a year column
+- Group by year
+- Apply mean (Which will give mean of each column item). 
+- Select relevant cols 
+
+
+
+```python
+newdf = df.withColumn("Year",year(df['date']))                         # Create a new column 'year'
+```
+
+
+```python
+meanAllValues = newdf.groupBy("Year").mean()                          #  Mean all values in cols
+```
+
+
+```python
+meanYC = meanAllValues.select(["Year","avg(Close)"])                  # Select cols
+```
+
+
+```python
+meanAllValues.select('year', format_number("avg(Close)",2)).show()    # Round
+```
+
+    +----+----------------------------+
+    |year|format_number(avg(Close), 2)|
+    +----+----------------------------+
+    |2015|                      120.04|
+    |2013|                      472.63|
+    |2014|                      295.40|
+    |2012|                      576.05|
+    |2016|                      104.60|
+    |2010|                      259.84|
+    |2011|                      364.00|
+    +----+----------------------------+
     
 
 
