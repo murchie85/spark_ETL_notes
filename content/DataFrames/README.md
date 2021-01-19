@@ -14,7 +14,12 @@
 | [SQL](#SQL)|[DataFrame Filter Operations](#DataFrame-Filter-Operations) |[Collect & Filter](#Collect-&-Filter) |[Groupby and Aggregate](#Groupby-and-Aggregate) |
 |[Rounding Numbers](#Rounding-Numbers) |[Missing Data drop/fill](#Missing-Data) |[Sort and order](#Sort-and-order) |[Dates and Timestamps ](#Dates-and-Timestamps) |
 | | | | |
-| | | | |
+| | | | |  
+    
+       
+| Challenge Set.             | 
+|-------------------------------|  
+| [Challenge Set](challenge.md) | 
 
 **Setting up**  
 
