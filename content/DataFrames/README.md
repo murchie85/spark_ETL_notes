@@ -6,12 +6,14 @@
 
 # DataFrame Basics  
   
-### Key Points    
+## Navigation   
   
 | ___ | Navigation| Links | ___ | 
 |-------|-----------|---------|----------|
 |[First DataFrame](#First-DataFrame)|[Amending Schema](#Amending-Schema) |[Select Operations](#Select-Operations) |[Column operations](#Column-operations)|
-| [SQL](#SQL)|[DataFrame Filter Operations](#DataFrame-Filter-Operations) | | |
+| [SQL](#SQL)|[DataFrame Filter Operations](#DataFrame-Filter-Operations) |[Collect & Filter](#Collect-&-Filter) |[Groupby and Aggregate](#Groupby-and-Aggregate) |
+| | | | |
+| | | | |
 | | | | |
 
 **Setting up**  
@@ -31,6 +33,7 @@ df.select('column').show()
 ```
 
 ## First DataFrame
+[Nav](#navigation)
 
 
 ```python
@@ -38,6 +41,7 @@ import findspark
 findspark.init('/opt/apache-spark/spark-2.4.7-bin-hadoop2.7')
 from pyspark.sql import SparkSession
 peopleFile = 'in/df/people.json'
+sourcePath = 'in/df/'
 ```
 
 
@@ -118,6 +122,7 @@ df.describe().show()
 
 
 ## Amending Schema
+[Nav](#navigation)
 
 
 ```python
@@ -158,6 +163,7 @@ df.printSchema() # now our age schema has been udpated
 
 
 ## Select Operations
+[Nav](#navigation)
 
 
 ```python
@@ -212,6 +218,7 @@ df.select(['age','name']).show()
 
 
 ## Column operations
+[Nav](#navigation)
 
 #### Adding a Column
 
@@ -278,6 +285,7 @@ df.withColumnRenamed('age','my_new_age').show()
 
 
 # SQL
+[Nav](#navigation)
 
 #### Crete a view from Dataframe
 
@@ -317,6 +325,7 @@ new_results = spark.sql("SELECT * FROM people where age =30").show()
 
 
 # DataFrame Filter Operations
+[Nav](#navigation)
 
 
 ```python
@@ -351,34 +360,274 @@ df.printSchema()
 
 
 ```python
-df.show()
+df.show(2)
 ```
 
-    +-------------------+------------------+------------------+------------------+------------------+---------+------------------+
-    |               Date|              Open|              High|               Low|             Close|   Volume|         Adj Close|
-    +-------------------+------------------+------------------+------------------+------------------+---------+------------------+
-    |2010-01-04 00:00:00|        213.429998|        214.499996|212.38000099999996|        214.009998|123432400|         27.727039|
-    |2010-01-05 00:00:00|        214.599998|        215.589994|        213.249994|        214.379993|150476200|27.774976000000002|
-    |2010-01-06 00:00:00|        214.379993|            215.23|        210.750004|        210.969995|138040000|27.333178000000004|
-    |2010-01-07 00:00:00|            211.75|        212.000006|        209.050005|            210.58|119282800|          27.28265|
-    |2010-01-08 00:00:00|        210.299994|        212.000006|209.06000500000002|211.98000499999998|111902700|         27.464034|
-    |2010-01-11 00:00:00|212.79999700000002|        213.000002|        208.450005|210.11000299999998|115557400|         27.221758|
-    |2010-01-12 00:00:00|209.18999499999998|209.76999500000002|        206.419998|        207.720001|148614900|          26.91211|
-    |2010-01-13 00:00:00|        207.870005|210.92999500000002|        204.099998|        210.650002|151473000|          27.29172|
-    |2010-01-14 00:00:00|210.11000299999998|210.45999700000002|        209.020004|            209.43|108223500|         27.133657|
-    |2010-01-15 00:00:00|210.92999500000002|211.59999700000003|        205.869999|            205.93|148516900|26.680197999999997|
-    |2010-01-19 00:00:00|        208.330002|215.18999900000003|        207.240004|        215.039995|182501900|27.860484999999997|
-    |2010-01-20 00:00:00|        214.910006|        215.549994|        209.500002|            211.73|153038200|         27.431644|
-    |2010-01-21 00:00:00|        212.079994|213.30999599999998|        207.210003|        208.069996|152038600|         26.957455|
-    |2010-01-22 00:00:00|206.78000600000001|        207.499996|            197.16|            197.75|220441900|         25.620401|
-    |2010-01-25 00:00:00|202.51000200000001|        204.699999|        200.190002|        203.070002|266424900|26.309658000000002|
-    |2010-01-26 00:00:00|205.95000100000001|        213.710005|        202.580004|        205.940001|466777500|         26.681494|
-    |2010-01-27 00:00:00|        206.849995|            210.58|        199.530001|        207.880005|430642100|26.932840000000002|
-    |2010-01-28 00:00:00|        204.930004|        205.500004|        198.699995|        199.289995|293375600|25.819922000000002|
-    |2010-01-29 00:00:00|        201.079996|        202.199995|        190.250002|        192.060003|311488100|         24.883208|
-    |2010-02-01 00:00:00|192.36999699999998|             196.0|191.29999899999999|        194.729998|187469100|         25.229131|
-    +-------------------+------------------+------------------+------------------+------------------+---------+------------------+
-    only showing top 20 rows
+    +-------------------+----------+----------+------------------+----------+---------+------------------+
+    |               Date|      Open|      High|               Low|     Close|   Volume|         Adj Close|
+    +-------------------+----------+----------+------------------+----------+---------+------------------+
+    |2010-01-04 00:00:00|213.429998|214.499996|212.38000099999996|214.009998|123432400|         27.727039|
+    |2010-01-05 00:00:00|214.599998|215.589994|        213.249994|214.379993|150476200|27.774976000000002|
+    +-------------------+----------+----------+------------------+----------+---------+------------------+
+    only showing top 2 rows
+    
+
+
+
+```python
+df.head(3)[1]
+```
+
+
+
+
+    Row(Date=datetime.datetime(2010, 1, 5, 0, 0), Open=214.599998, High=215.589994, Low=213.249994, Close=214.379993, Volume=150476200, Adj Close=27.774976000000002)
+
+
+
+### SQL Style VS Python Style
+
+
+```python
+df.filter("close < 500").select(['Open','close']).show(2) # SQL style
+```
+
+    +----------+----------+
+    |      Open|     close|
+    +----------+----------+
+    |213.429998|214.009998|
+    |214.599998|214.379993|
+    +----------+----------+
+    only showing top 2 rows
+    
+
+
+
+```python
+df.filter(df['Close'] < 500).select(['Open','close']).show(2) # Python style
+```
+
+    +----------+----------+
+    |      Open|     close|
+    +----------+----------+
+    |213.429998|214.009998|
+    |214.599998|214.379993|
+    +----------+----------+
+    only showing top 2 rows
+    
+
+
+#### Multiple condition filter
+
+**Note** you need to use   
+`&` and   
+`|` or  
+`~` not    
+  
+boolean conditions
+
+
+```python
+df.filter((df['Close'] < 200) &  (df['Open'] > 200)).show()
+```
+
+    +-------------------+------------------+----------+----------+----------+---------+------------------+
+    |               Date|              Open|      High|       Low|     Close|   Volume|         Adj Close|
+    +-------------------+------------------+----------+----------+----------+---------+------------------+
+    |2010-01-22 00:00:00|206.78000600000001|207.499996|    197.16|    197.75|220441900|         25.620401|
+    |2010-01-28 00:00:00|        204.930004|205.500004|198.699995|199.289995|293375600|25.819922000000002|
+    |2010-01-29 00:00:00|        201.079996|202.199995|190.250002|192.060003|311488100|         24.883208|
+    +-------------------+------------------+----------+----------+----------+---------+------------------+
+    
+
+
+# Collect & Filter
+
+[Nav](#navigation)
+  
+This is the more traditional approach that we will be doing - filtering a dataframe and collecting results then making display format.
+
+
+```python
+result = df.filter(df['Low'] == 197.16).collect()
+```
+
+
+```python
+row = result[0]
+```
+
+### asDict 
+
+
+```python
+row.asDict()['Volume']
+```
+
+
+
+
+    220441900
+
+
+
+## Groupby and Aggregate
+[Nav](#navigation)
+  
+- Groupby groups rows by a given column attribute
+- Aggregate could be sum of all values, average etc could be applied to groupby result also
+
+
+```python
+from pyspark.sql import SparkSession
+```
+
+
+```python
+spark = SparkSession.builder.appName('aggs').getOrCreate()
+```
+
+
+```python
+df = spark.read.csv(str(sourcePath) + 'sales_info.csv', inferSchema=True,header=True)
+```
+
+
+```python
+df.show()
+df.printSchema()
+```
+
+    +-------+-------+-----+
+    |Company| Person|Sales|
+    +-------+-------+-----+
+    |   GOOG|    Sam|200.0|
+    |   GOOG|Charlie|120.0|
+    |   GOOG|  Frank|340.0|
+    |   MSFT|   Tina|600.0|
+    |   MSFT|    Amy|124.0|
+    |   MSFT|Vanessa|243.0|
+    |     FB|   Carl|870.0|
+    |     FB|  Sarah|350.0|
+    |   APPL|   John|250.0|
+    |   APPL|  Linda|130.0|
+    |   APPL|   Mike|750.0|
+    |   APPL|  Chris|350.0|
+    +-------+-------+-----+
+    
+    root
+     |-- Company: string (nullable = true)
+     |-- Person: string (nullable = true)
+     |-- Sales: double (nullable = true)
+    
+
+
+
+```python
+df.groupBy('Company')
+```
+
+
+
+
+    <pyspark.sql.group.GroupedData at 0x7faa48be3050>
+
+
+
+
+```python
+df.groupBy('Company').count().show()
+```
+
+    +-------+-----+
+    |Company|count|
+    +-------+-----+
+    |   APPL|    4|
+    |   GOOG|    3|
+    |     FB|    2|
+    |   MSFT|    3|
+    +-------+-----+
+    
+
+
+
+```python
+df.groupBy('Company').mean().show()
+df.groupBy('Company').max().show()
+df.groupBy('Company').min().show()
+```
+
+    +-------+-----------------+
+    |Company|       avg(Sales)|
+    +-------+-----------------+
+    |   APPL|            370.0|
+    |   GOOG|            220.0|
+    |     FB|            610.0|
+    |   MSFT|322.3333333333333|
+    +-------+-----------------+
+    
+    +-------+----------+
+    |Company|max(Sales)|
+    +-------+----------+
+    |   APPL|     750.0|
+    |   GOOG|     340.0|
+    |     FB|     870.0|
+    |   MSFT|     600.0|
+    +-------+----------+
+    
+    +-------+----------+
+    |Company|min(Sales)|
+    +-------+----------+
+    |   APPL|     130.0|
+    |   GOOG|     120.0|
+    |     FB|     350.0|
+    |   MSFT|     124.0|
+    +-------+----------+
+    
+
+
+#### Aggregating without grouping  
+
+Different and takes in a dict  
+  
+- agg all rows
+- accross sales column. 
+- sum them up 
+
+
+
+```python
+df.agg({'sales':'sum'}).show()
+```
+
+    +----------+
+    |sum(sales)|
+    +----------+
+    |    4327.0|
+    +----------+
+    
+
+
+
+```python
+group_data = df.groupBy('Company')
+```
+
+#### Aggregating with groups
+
+
+```python
+group_data.agg({'sales':'sum'}).show()
+```
+
+    +-------+----------+
+    |Company|sum(sales)|
+    +-------+----------+
+    |   APPL|    1480.0|
+    |   GOOG|     660.0|
+    |     FB|    1220.0|
+    |   MSFT|     967.0|
+    +-------+----------+
     
 
 
