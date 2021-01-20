@@ -1,28 +1,114 @@
 
-# Pyspark and DataLake notes
+# ETL, Pyspark & DataLake notes
 
 These are a list of notes, learning materials and resources for learning Pyspark, Tableu and other datalake technologies and terms.   
 
 ## Navigation
 
     
-| Topics | 
-|-------| 
-| [Intro and Notes](#Intro)      |   
-| [DataFrames](content/DataFrames/README.md)|
-| [RDD](content/rdd/README.md)  |
-| [Spark Architecture](#Spark-Architecture) |  
-| [REGEX Tips](#REGEX-Tips) |
-| **[AIRFLOW](#Airflow)** | 
-| **TABLEU** |  
-| Hive Tables |   
-| [Data Engineer](#Data-Engineer)|  
-|[Useful Links](#Useful-Links)|  
-|[Notes](#Notes)|  
+| Intro| [Intro, Notes and ETL](#Intro) |
+|-------| -------|  
+  
+
+| **PYSPARK**|  | | 
+|-------|-------|-------|
+| [DataFrames](content/DataFrames/README.md)|[RDD](content/rdd/README.md)  |[Spark High Level](#Spark-High-Level) |  
+
+  
+
+| **TOOLS**             |    | |  |
+|-------|-------|-------|-----|
+| [AIRFLOW](#Airflow)|   [TABLEU](#TABLEU) |   [Hive Tables](#Hive-Tables) |   [SAP](#SAP)
 
 
 
-## Intro   
+| **General** |   | |  |   
+|-------|-------|-------|-------|  
+| [Data Engineer](#Data-Engineer)|[Useful Links](#Useful-Links)| [Notes](#Notes)|  [REGEX Tips](#REGEX-Tips) |  
+  
+
+
+## Intro
+    
+
+## Quick Notes
+  
+- Get accumulator value using 
+- Get rdd values using collect or map
+```python
+rdd.map(lambda x: (x[0], x[2], x[4])) # get first, thrid and fifth element of each
+```
+  
+- Make comma delimiter utils function
+  
+- Run Pyspark in jupytern notebooks  
+  
+Add the following to `~/.zshrc`  
+
+
+```
+export PYSPARK_DRIVER_PYTHON=jupyter
+export PYSPARK_DRIVER_PYTHON_OPTS='notebook'
+```
+
+    
+## ETL   
+   
+Extract, Transform and Load
+
+- OLTP Online Transaction Processing
+- OLAP Online Analytics Processing  
+ 
+Challenges  
+
+- Nightly batches? 
+- Incremental loading (i.e. the delta)  
+- Loading millions of records takes hours  
+- OLTP have multiple disparate sources 
+- Record changing overtime and relationships  
+
+    
+**Dat is precious** ensure that there is no way for records to be lost.  
+
+
+### High level plan  
+ 
+
+1. Determine initial and end state data, **required end state**.  
+2. Determine Source
+3. Plan **Data Extraction** , **cleansing** and **transformation** rules.  
+4. Load **data attributes** prior to activity i.e. schema, size to perform checksum. 
+5. Manage Disaster recover, and disaster disaster recovery scenarios  
+6. Learn Data Architecture Diagrams - produce them, work towards them 
+7. Validate all transformations 
+8. Business Rules to be validated both programatically and with peers.  
+9. Sequential transformations are a risk, create processes to simplify and manage. Think deeply if you have to... 
+10. Manage third party failures and upstream dependencies 
+  
+### Adam's MANDATORY Approach  
+  
+- Document `initial state`  
+- Validate/agree `final state`
+- Generate `libs` to create delta between `initial` and `final`  
+- Generate `libs` for cleaning, missing, drop etc  
+- Generate `libs` for measuring metrics of jobs, to document improvements/failures  
+- Create Audit logs for all ETL jobs performed   
+- Generate ETL `unit tests` including failure scenarios  
+- Manage ETL `signalling`, `checking` and `notification steps` i.e. a job to ensure the jobs are running and communicate them.  
+- programatically generate data-job relationships and produce graphs.  
+- Random `logic validator` for transactions to be run accross snapshot of transformation.   
+- Create `alerts` and `logic` for external failures, i.e. an expected data load didn't arrive.      
+
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+
+## Spark High Level
+  
   
 ![](images/components.png)  
   
@@ -49,32 +135,9 @@ These are a list of notes, learning materials and resources for learning Pyspark
 spark-submit myprogram.py
 ```  
     
-- Two output files because of two cores used.  
-
-
-## Quick Notes
+- Two output files because of two cores used.    
   
-- Get accumulator value using 
-- Get rdd values using collect or map
-```python
-rdd.map(lambda x: (x[0], x[2], x[4])) # get first, thrid and fifth element of each
-```
-  
-- Make comma delimiter utils function
-  
-- Run Pyspark in jupytern notebooks  
-  
-Add the following to `~/.zshrc`  
 
-
-```
-export PYSPARK_DRIVER_PYTHON=jupyter
-export PYSPARK_DRIVER_PYTHON_OPTS='notebook'
-```
-
-## Spark Architecture
-  
-    
 
   
 ## REGEX Tips
