@@ -33,6 +33,7 @@ These are a list of notes, learning materials and resources for learning Pyspark
 ## ToDo  
   
 - Learn more Data terminology  
+- [Tableu](https://www.udemy.com/course/complete-tableau-bootcamp-dashboards/)
 
 
 ## Quick Notes
