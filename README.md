@@ -30,6 +30,10 @@ These are a list of notes, learning materials and resources for learning Pyspark
 
 ## Intro
     
+## ToDo  
+  
+- Learn more Data terminology  
+
 
 ## Quick Notes
   
