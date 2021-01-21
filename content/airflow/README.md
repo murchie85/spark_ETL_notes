@@ -12,6 +12,72 @@
 - [Setup](#Setup) 
 - [Useful Commands](#Useful-Commands)
 
+
+## Intro  
+ 
+### UseCases 
+
+Used for `orchastrating datajobs` including the logic flow, to manage failures, notifications, extract, transform, load.  
+  
+Airflow also critically manages `mutliple pipelines` in parallel.  
+    
+- Extensible (build your own plugins)
+- Dashboards 
+- Uses python
+- Scalable.   
+  
+
+To `author`, `schedule` and `monitor` data workflows.   
+It allows you to orchastrate tasks in the right way, in the right order.  
+  
+    
+### Core Components 
+  
+
+**Web server** Flask server with Gunicorn serving the UI  
+**Scheduler** Daemon in charge of managing workflows. 
+**metastore**  Database where metadata is stored  
+  
+**executor** class defining **how** your tasks will executor 
+**worker** the process executing the task.  
+  
+
+## DAG  
+  
+DAG (Directed Acyclic Graph) is essentially a pipeline.  
+  
+![](https://miro.medium.com/max/4096/1*CtoqTsvlAuXU_4V-W5VMyQ.png)
+  
+  
+**operator** is a task, run by the worker.  
+- Action Operator
+- Transfer Operator
+- Sensor Operator   
+  
+
+**Task** is an operator.   
+**task instance** is the specific runtime for a given task.  
+	
+## DAGS ARE NOT...  
+  
+- For streaming data
+- For processing data (use a `spark submit` operator instead to prevent memory overflow). 
+  
+## Architecture  
+    
+![](architecture.png) 
+  
+
+**Celery** architecture is:  
+  
+- Scalable 
+- An executor on each node 
+- Celery manages nodes and needs reddis/rabbitmq to manage queues.  
+- Executor pushes tasks to the queue 
+- Airflow workers fetch tasks and execute them on their own machine  
+
+
+
 ## Setup  
 
 Can create a VM and connect to it using ssh connection on visual studios. 
