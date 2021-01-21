@@ -1,6 +1,16 @@
 ## Airflow  
- 
+     
+[home](../../README.md).  
+  
 
+![](https://cdn-images-1.medium.com/max/1024/1*FJsMPN5kPMI7JuqhsaP7rA.png)
+  
+
+## Navigation  
+   
+- [Intro](#Intro) 
+- [Setup](#Setup) 
+- [Useful Commands](#Useful-Commands)
 
 ## Setup  
 
@@ -47,7 +57,7 @@ airflow.cfg		airflow.db		logs			unittests.cfg		webserver_config.py
     
 
 
-# USEFUL COMMANDS  
+# Useful Commands
 
 
 
@@ -65,10 +75,32 @@ airflow users create -u admin -p admin -f adam -l mcmurchie -r Admin -e admin@ai
 
 ```
 
-####
+#### Start Scheduler
 
 ```sh
+airflow scheduler -D
+```
+    
+- This has to run in addition to webserver so use `-D` flag.  	 
 
+#### List DAGS
+
+```sh
+airflow dags list
+```
+  
+#### Lists Tasks for given DAG
+
+```sh
+airflow tasks list dag_name 
+  
+airflow tasks list example_python_operator
+```
+  
+#### Trigger DAG datapipeline
+
+```sh
+airflow dags trigger -e 2021-01-01 dag_name
 ```
   
 ####
@@ -76,20 +108,7 @@ airflow users create -u admin -p admin -f adam -l mcmurchie -r Admin -e admin@ai
 ```sh
 
 ```
-  
-####
 
-```sh
-
-```
-  
-#### Reset DB 
-
-```sh
-airflow db reset
-
-```
-  
    
 
 
@@ -115,6 +134,13 @@ airflow webserver
 airflow db init
 ```
     
+#### Reset DB 
+
+```sh
+airflow db reset
+
+```
+ 
   
 
 
