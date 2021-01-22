@@ -11,6 +11,8 @@
 - [Intro](#Intro) 
 - [Setup](#Setup) 
 - [Useful Commands](#Useful-Commands)
+- [Architecture](#Architecture)
+- [UI](#UI)
 
 
 ## Intro  
@@ -63,7 +65,7 @@ DAG (Directed Acyclic Graph) is essentially a pipeline.
 - For streaming data
 - For processing data (use a `spark submit` operator instead to prevent memory overflow). 
   
-## Architecture  
+## Architecture
     
 ![](architecture.png) 
   
@@ -76,7 +78,17 @@ DAG (Directed Acyclic Graph) is essentially a pipeline.
 - Executor pushes tasks to the queue 
 - Airflow workers fetch tasks and execute them on their own machine  
 
-
+  
+How it works:  
+  
+1. Data pipelines are added to `folder Dags`. 
+2. Web server and executor parses `folder dags`. 
+3. `DagRun` object is created in Metastore with status `running`. 
+4. A `task instance` object is created and sent to executor 
+5. Eexecutor updates `task instance` object in meta store, 
+6. Once complete, `task instance` object updated again, and scheduler checks it is done.  
+  
+  
 
 ## Setup  
 
@@ -208,6 +220,58 @@ airflow db reset
 ```
  
   
+  
+# UI
+  
+![](DagView.png) 
+  
+- Toggle the job on/off 
+- `tags` help you group pipelines. 
+- Owner could be airflow, team names i.e. marketing. 
+- Runs is for status. 
+- Schedule   
+- Recent tasks (status). 
+- Actions: trigger manually, refresh, delete (doesn't delete file, just metadata) 
+- links gives you access to code, view, details etc.    
+  
+## Tree View 
+
+  
+![](https://anchormen.nl/wp-content/uploads/2020/05/Tree-view-in-the-web-UI-to-demonstrate-Airflow-concepts..png) 
+
+    
+- Useful for history of DAG runs 
+- Each verticle slice is a run 
+- Square is a task 
+  
+## Graph View 
+    
+![](https://michal.karzynski.pl/images/illustrations/2017-03-19/airflow-example-dag.png). 
+  
+- Outline color represents the `status`
+- Internal color represents the `operator` 
+  
+## Gantt View  
+  
+![](https://www.agari.com/wp-content/uploads/2015/08/Gantt_chart.png)
+  
+- Great for spotting bottlenecks
+- helps to see how long each task is taking.  
+- Allows for planning of parallel jobs.  
+- Great for production.  
+  
+
+## Instance view 
+
+![](instanceView.png). 
+  
+
+- Most important is the logs 
+- `clear` task if you want to re-run 
+- `mark fail / success`    
+  
+
+
 
 
 # Notes.  
