@@ -424,8 +424,11 @@ Add New connection:
 
 
 **Always test** every task after you make it.  
-	- `airflow tasks test user_processing creating_table 2021-01-01`   
 
+```
+airflow tasks test user_processing creating_table 2021-01-01
+```   
+  
 ![](success.png)  
   
 Verify in terminal: 
@@ -480,8 +483,11 @@ If not installed.
     
 Now run the test.  
   
-`airflow tasks test user_processing is_api_available 2021-01-01`. 
+```
+airflow tasks test user_processing is_api_available 2021-01-01
+```
 
+  
  
 ## Extracting User 
 
@@ -513,11 +519,43 @@ Test this task again using:
   
 `airflow tasks test user_processing extracting_user 2021-01-01`. 
   
-![](processComplete.png)
+![](usertest.png)
+
+## Process User 
+
+We are going to use the most popular operator `python operator` to process the returned data from previous task using `xcom_pull` operation.  
+  
+- create a task to process user
+- We create a `python function` that it uses
+- This function has the `task instance` ti passed in.
+- So it can group the output of previous task, parse the data and save to json format
+- This is done using `pandas json_normalize` 
+  
+- `xcom` is a key in the airflowdb, it's value is the output of that tasks. 
 
 
 
+![](xcomout.png) 
+  
+Validate task works properly:  
+  
+```
+airflow tasks test user_processing processing_user 2021-01-01
+``` 
+  
 
+Check the file is created in tmp folder
+
+```sh
+cat /tmp/processed_user.csv 
+```
+Output:  
+  
+```
+Kristin,Grube,Germany,silverfish154,celebrity,kristin.grube@example.com
+```
+  
+## Storing Users to Database
 
 
 
