@@ -320,7 +320,7 @@ airflow db reset
   
 
 
-## Data Pipeline Example
+# Data Pipeline Example
 
 [Navigation](#Navigation)   
   
@@ -511,12 +511,9 @@ import json
   
 Test this task again using:  
   
-`airflow tasks test user_processing extracting_user 2021-01-01`
-
-
-
-
-
+`airflow tasks test user_processing extracting_user 2021-01-01`. 
+  
+![](processComplete.png)
 
 
 
