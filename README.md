@@ -96,13 +96,15 @@ Challenges
 - Validate/agree `final state`
 - Generate `libs` to create delta between `initial` and `final`  
 - Generate `libs` for cleaning, missing, drop etc  
-- Generate `libs` for measuring metrics of jobs, to document improvements/failures  
+- Generate `libs` for measuring metrics of jobs, to document improvements/failures
+- Write script to check `file exists`.   
 - Create Audit logs for all ETL jobs performed   
 - Generate ETL `unit tests` including failure scenarios  
 - Manage ETL `signalling`, `checking` and `notification steps` i.e. a job to ensure the jobs are running and communicate them.  
 - programatically generate data-job relationships and produce graphs.  
 - Random `logic validator` for transactions to be run accross snapshot of transformation.   
 - Create `alerts` and `logic` for external failures, i.e. an expected data load didn't arrive.      
+
 
 
 <br/>

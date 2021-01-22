@@ -6,17 +6,22 @@
 ![](https://cdn-images-1.medium.com/max/1024/1*FJsMPN5kPMI7JuqhsaP7rA.png)
   
 
-## Navigation  
-   
+## Navigation
+    
+
 - [Intro](#Intro) 
 - [Setup](#Setup) 
 - [Useful Commands](#Useful-Commands)
 - [Architecture](#Architecture)
-- [UI](#UI)
+- [UI](#UI). 
+- [Data Pipeline Example](#Data-Pipeline-Example)  
 
 
-## Intro  
- 
+## Intro
+   
+[Navigation](#Navigation) 
+  
+
 ### UseCases 
 
 Used for `orchastrating datajobs` including the logic flow, to manage failures, notifications, extract, transform, load.  
@@ -51,13 +56,16 @@ DAG (Directed Acyclic Graph) is essentially a pipeline.
 ![](https://miro.medium.com/max/4096/1*CtoqTsvlAuXU_4V-W5VMyQ.png)
   
   
-**operator** is a task, run by the worker.  
+**operator** is a task container, run by the worker.  
 - Action Operator
 - Transfer Operator
 - Sensor Operator   
   
+  
+**ONLY RUN ONE OPERATOR FOR ONE TASK!!**. 
+  
 
-**Task** is an operator.   
+**Task** is the job ru .   
 **task instance** is the specific runtime for a given task.  
 	
 ## DAGS ARE NOT...  
@@ -66,7 +74,11 @@ DAG (Directed Acyclic Graph) is essentially a pipeline.
 - For processing data (use a `spark submit` operator instead to prevent memory overflow). 
   
 ## Architecture
-    
+  
+  
+
+[Navigation](#Navigation)   
+
 ![](architecture.png) 
   
 
@@ -90,7 +102,11 @@ How it works:
   
   
 
-## Setup  
+## Setup
+  
+[Navigation](#Navigation)   
+  
+
 
 Can create a VM and connect to it using ssh connection on visual studios. 
   
@@ -136,9 +152,9 @@ airflow.cfg		airflow.db		logs			unittests.cfg		webserver_config.py
 
 
 # Useful Commands
-
-
-
+  
+[Navigation](#Navigation) 
+  
 ## CheatSheet 
    
 
@@ -223,6 +239,12 @@ airflow db reset
   
 # UI
   
+
+[Navigation](#Navigation) 
+  
+
+
+  
 ![](DagView.png) 
   
 - Toggle the job on/off 
@@ -270,7 +292,102 @@ airflow db reset
 - `clear` task if you want to re-run 
 - `mark fail / success`    
   
+  
+## Data Pipeline Example
 
+[Navigation](#Navigation)   
+  
+
+FLOW:  
+  
+
+1. Create table `sql lite`
+2. is-api available `http sensor `
+3. fetch user `http operator` 
+4. process user `python operator` 
+5. store user `bash operator`   
+  
+    
+```
+/Users/adammcmurchie/2021/spark_RBS_prep/content/airflow
+```
+
+Create a Dag folder at:  
+```sh
+/Users/adammcmurchie/airflow/
+```
+
+Create a pipeline called `user_processing.py` in dag folder.  
+  
+```python
+from airflow.models import DAG
+
+# python deps
+from datetime
+  
+
+# Applied to all operators. 
+default_args = {
+	'start_date':datetime(2021, 1,22)
+}
+  
+  
+## ID MUST BE UNIQUE
+with DAG('user_processing', 
+	schedule_interval=@'daily', 
+	default_args=default_args, 
+	catchup=False) as dag:
+	# define task/operator
+
+```
+
+- `with DAG()` id must be unique. 
+  
+## Creating DB table  
+  
+ Add DB code, the stuff not commented are the changes  
+
+```python
+#from airflow.models import DAG
+from airflow.providers.sqlite.operators.sqlite import SqliteOperator
+ 
+"""
+# python deps
+from datetime
+  
+
+# Applied to all operators. 
+default_args = {
+	'start_date':datetime(2021, 1,22)
+}
+  
+
+## ID MUST BE UNIQUE
+with DAG('user_processing', 
+	schedule_interval=@'daily', 
+	default_args=default_args, 
+	catchup=False) as dag:
+	# define task/operator
+"""
+
+	# Unique id for each task required 
+	creating_table = SqliteOperator(
+		task_id = 'creating_table',
+		sqlite_conn_id='db_sqlite',
+		sql='''
+			CREATE TABLE users(
+				firstname TEXT NOT NULL,
+				lastname TEXT NOT NULL,
+				country TEXT NOT NULL,
+				username TEXT NOT NULL,
+				password TEXT NOT NULL,
+				email TEXT NOT NULL PRIMARY KEY
+			);
+
+			'''
+
+		)
+```
 
 
 
