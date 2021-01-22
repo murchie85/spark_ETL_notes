@@ -11,6 +11,7 @@
 
 - [Intro](#Intro) 
 - [Setup](#Setup) 
+	- [Installing a provider/plugin](#Installing-a-provider)
 - [Useful Commands](#Useful-Commands)
 - [Architecture](#Architecture)
 - [UI](#UI). 
@@ -135,7 +136,20 @@ Run to get dir path:
   
 ```
 airflow info
-``` 
+```   
+  
+### Installing a provider
+  
+Providers are just plugins, most of them may not need an install with the new version.  
+
+Go to airflow docs
+Pick the provider
+Run pip install and the provider name 
+
+i.e. `apache-airflow-providers-sqlite` 
+  
+  
+
 
 #### Airflow Dir. 
   
@@ -391,17 +405,14 @@ with DAG('user_processing', schedule_interval='@daily',
 - Now start webserver and scheduler using airflow command. 
 - Check graph view to verify our DAG has one job 
 
-### Installing a provider 
 
-Go to airflow docs
-Pick the provider
-Run pip install and the provider name 
-
-i.e. `apache-airflow-providers-sqlite` 
+Set up connection:  
+- admin
+- connections. 
   
+![](connection.png)
+    
 
-
-  
 
 
 # Notes.  
