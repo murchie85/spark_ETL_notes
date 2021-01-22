@@ -27,6 +27,10 @@
   
 - Always test every task after you make it.  
 	- `airflow tasks test dagname taskid pastexecutiondate`   
+- Scheduling times can be tricky.
+  
+
+**SQLITE DOES NOT ALLOW MULTIPLE WRITES AT THE SAME TIME** 
   
 
 ### UseCases 
@@ -338,16 +342,18 @@ We then download/extract the user with a get call using Using `simpleHttpOperato
 Next we parse the ouput of that task (xcom_pull) to process the data into json using pandas json_normalize and save to csv. 
 Finally we add the data to our database using `bash operator`.  
 
-FLOW:  
+## FLOW  
+  
+0. [Create Skeleton DAG](#Create-Skeleton-DAG)
+1. [Creating DB table](#Creating-DB-table) `sql lite`
+2. [Check API is Available](#Check-API-is-Available) `http sensor `
+3. [Fetch User](#Fetch-User) `http operator` 
+4. [Process User](#Process-User) `python operator` 
+5. [Storing Users to Database](#Storing-Users-to-Database) `bash operator`  
+6. [Specifying DAG Order](#Specifying-DAG-Order) 
   
 
-1. Create table `sql lite`
-2. is-api available `http sensor `
-3. fetch user `http operator` 
-4. process user `python operator` 
-5. store user `bash operator`   
-  
-    
+### Create Skeleton DAG
 ```
 /Users/adammcmurchie/2021/spark_RBS_prep/content/airflow
 ```
@@ -507,7 +513,7 @@ airflow tasks test user_processing is_api_available 2021-01-01
 
   
  
-## Extracting User 
+## Fetch User
 
 Fetch User from API (external website) - fetch result from randomuser url.  
  
@@ -542,7 +548,7 @@ Test this task again using:
   
 ![](usertest.png)
 
-## Process User 
+## Process User
 
 We are going to use the most popular operator `python operator` to process the returned data from previous task using `xcom_pull` operation.  
   
@@ -660,19 +666,112 @@ airflow tasks test user_processing storing_user 2021-01-01
 <br/>
 
 
+  
+
+
+## Specifying DAG Order
+
+![](taskFlow.png)
+
+  
+Note DAG, if run, any could start first, no dependency is set. 
+
+
+We define order using `dependencies` defined in the DAG by bitshift operators `<< >>` operators and `set_upstream` , `set_downstream` functions.   
+    
+
+```python
+creating_table >> is_api_available >> extracting_user >> processing_user >> storing_user
+```
+  
+
+
+Now notice the updated graph:  
+
+
+![](taskFlowDependent.png)
 
 
 
+Now kick off the dag from the UI: 
+
+Simply turn on the trigger: 
+
+Note the table already exists after we tested it early.  So update previous SQL statement to 
+
+```SQL
+CREATE TABLE IF NOT EXISTS users...
+```
+  
+You may need to refresh and clear tasks history to start again.  
+    
+## Stretch Goal  
+ 
+- Manage exceptions such as if API check/get fails. 
 
 
 
+# Theory 
+  
+  
+
+## Dag Scheduling
+    
+Need to validate start dates, as it may be startdate + frequency.  
+  
+`schedule_interval`  : Defines how often a DAG should run from **start_date** + **schedule_time**. 
+
+
+Question: Let's assume your dag has a start_date with October,22,2018 10:00:00 PM UTC and you have started the DAG at 10:30:00 PM UTC with the schedule_interval of `*/10 * * * *` (After every 10 minutes). How many DagRuns are going to be executed?. 
+
+Anser: 3: The first one is executed at 10:00, then 10:10 and 10:20. 10:30 is not yet executed since the DAG runs once the `schedule_interval` (10 minutes here) is passed.  
+  
+
+
+## Productionising & Scaling
+
+  
+how to configure Airflow to execute multiple tasks? 
+
+What are the important parameters to know in order to tune?    
+  
+What are the different executors for scaling Airflow?  
+  
+
+
+### Configuration 
+
+- we need to change if we want to change how many tasks we execute at same time.  
+- Default, executes `sequentually` even if tasks are at same level in parallel.  
+
+
+Check parameters by running:  
+  
+```
+airflow config get-value core sql_alchemy_conn
+```
+  
+
+Two parameters are used: 
+
+
+`sql_alchemy_conn`
+  
+`executor` 
+  
+
+Running : 
+
+```
+airflow config get-value core executor
+```
+gives us : `SequentialExecutor` 
+  
 
 
 
-
-
-
-
+  
+	
 
 
 
