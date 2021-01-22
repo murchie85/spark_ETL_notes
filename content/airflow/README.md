@@ -374,27 +374,8 @@ with DAG('user_processing', schedule_interval='@daily',
  Add DB code, the stuff not commented are the changes  
 
 ```python
-#from airflow.models import DAG
 from airflow.providers.sqlite.operators.sqlite import SqliteOperator
  
-"""
-# python deps
-from datetime import datetime
-  
-
-# Applied to all operators. 
-default_args = {
-	'start_date':datetime(2021, 1,22)
-}
-  
-
-## ID MUST BE UNIQUE
-with DAG('user_processing', schedule_interval='@daily', 
-	default_args=default_args, 
-	catchup=False) as dag:
-	# define task/operator
-
-"""
 
 	# Unique id for each task required 
 	creating_table = SqliteOperator(
@@ -427,7 +408,7 @@ Set up connection:
 <br/>
   
 
-![](connection.png)
+FROM UI SELECT `Admin -> Connections` 
 
 <br/>
 <br/>
@@ -508,8 +489,29 @@ Fetch User from API (external website) - fetch result from randomuser url.
  
 Using `simpleHttpOperator`
   
+##### Added Code  
+
+```python
+from airflow.providers.http.operators.http import SimpleHttpOperator 
+import json 
 
 
+	extracting_user = SimpleHttpOperator(
+		task_id = 'extracting_user',
+		http_conn_id = 'user_api',
+		endpoint = 'api/',
+		method = 'GET',
+		response_filter = lambda response: json.loads(response.text),
+		log_response = True
+
+		)
+
+
+```
+  
+Test this task again using:  
+  
+`airflow tasks test user_processing extracting_user 2021-01-01`
 
 
 
@@ -533,6 +535,22 @@ Using `simpleHttpOperator`
 <br/>
 <br/>
 <br/>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   
