@@ -16,7 +16,7 @@
 - [Architecture](#Architecture)
 - [UI](#UI). 
 - [Data Pipeline Example](#Data-Pipeline-Example)  
-
+- [Backfill and Catchup](#Backfill-and-Catchup)
 
 ## Intro
    
@@ -312,7 +312,14 @@ airflow db reset
 - `clear` task if you want to re-run 
 - `mark fail / success`    
   
+    
+<br/>
+<br/>
+<br/>
+<br/>
   
+
+
 ## Data Pipeline Example
 
 [Navigation](#Navigation)   
@@ -494,9 +501,42 @@ Now run the test.
   
 `airflow tasks test user_processing is_api_available 2021-01-01`. 
 
+ 
+## Extracting User 
+
+Fetch User from API (external website) - fetch result from randomuser url.  
+ 
+Using `simpleHttpOperator`
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   
-## Backfill and Catchup 
+<br/> 
+<br/>
+<br/>
+<br/>
+<br/>
+
+
+  
+## Backfill and Catchup
 
 Consider you run pipelines daily for a given DAG:  
   
@@ -517,7 +557,7 @@ If you start up again on the 06/01 for DAGRUN6, it will try to run DAGRUN 4 and 
 - It only backfills to earlier date if its the first run.  
 	-  you can do this by going to `DAGRUNS` delete records.  
 
-	  
+
 We can turn this off by disabling catchup: 
   
 ```
@@ -534,7 +574,6 @@ with DAG('user_processing', schedule_interval='@daily',
 	# define task/operator
 
 ```
-  
 
 
 
