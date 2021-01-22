@@ -419,7 +419,7 @@ Set up connection:
 <br/>
 <br/>
   
-  
+
 ![](connection.png)
 
 <br/>
@@ -451,9 +451,93 @@ SELECT * FROM users;
 ``` 
   
 
+## Check API is Available
+
+- We use the `http sensor` for this.  
+  
+```python
+
+from airflow.providers.http.sensors.http import HttpSensor 
+
+# python deps
+from datetime import datetime
+
+
+	is_api_available = HttpSensor(
+		task_id = 'is_api_available',
+		http_conn_id = 'user_api',
+		endpoint = 'api/'
+		)
+
+
+```
+- Above is the extra added to codebase.  
+- `http_conn_id` is the api connection url to check.  
+  
+Now create a new connection, same way again admin --> connections.  
+  
+- `Conn id`   = user_api
+- `Conn type` = Http
+- `description` = API for getting users 
+- `host`      = https://randomuser.me/
+note it will check that host + `api/`
+  
+Save it and verify its setup.  
+   
+### Install the provider   
+ 
+If not installed. 
+
+`pip install 'apache-airflow-providers-http' `
+    
+Now run the test.  
+  
+`airflow tasks test user_processing is_api_available 2021-01-01`. 
 
 
   
+## Backfill and Catchup 
+
+Consider you run pipelines daily for a given DAG:  
+  
+- DAGRUN 1 01/01
+- DAGRUN 2 02/01
+- DAGRUN 3 03/01
+   
+DAG PUT ON HOLD  
+ 
+- DAGRUN 4 04/01 **NOT EXECUTED** 
+- DAGRUN 5 05/01 **NOT EXECUTED**   
+
+If you start up again on the 06/01 for DAGRUN6, it will try to run DAGRUN 4 and 5 to **catchup** first.   
+  
+**BY DEFAULT AIRFLOW WILL RUN ALL PREVIOUS DAGRUNS UP TO PRESENT**   
+   
+- Starting from latest execution date
+- It only backfills to earlier date if its the first run.  
+	-  you can do this by going to `DAGRUNS` delete records.  
+
+	  
+We can turn this off by disabling catchup: 
+  
+```
+catchup = False
+``` 
+    
+Incode examples:  
+  
+```python
+## ID MUST BE UNIQUE
+with DAG('user_processing', schedule_interval='@daily', 
+	default_args=default_args, 
+	catchup=False) as dag:
+	# define task/operator
+
+```
+  
+
+
+
 
 # Notes.  
   
