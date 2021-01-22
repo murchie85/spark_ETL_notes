@@ -22,6 +22,12 @@
    
 [Navigation](#Navigation) 
   
+  
+### Quick Tips. 
+  
+- Always test every task after you make it.  
+	- `airflow tasks test dagname taskid pastexecutiondate`   
+  
 
 ### UseCases 
 
@@ -412,8 +418,20 @@ Set up connection:
   
 ![](connection.png)
     
+Add New connection:
+
+- conn id = db_sqlite
+- conn type = sqlite
+- Description = sqlite conn to db
+- host = /Users/adammcmurchie/airflow/airflow.db
+	need to specify where the file corresponding to airflow.db is 
 
 
+**Always test** every task after you make it.  
+	- `airflow tasks test user_processing creating_table 2021-01-01`   
+
+![](success.png)
+  
 
 # Notes.  
   
