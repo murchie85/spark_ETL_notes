@@ -317,13 +317,26 @@ airflow db reset
 <br/>
 <br/>
 <br/>
-  
-
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 
 # Data Pipeline Example
 
 [Navigation](#Navigation)   
   
+This DAG sample, shows us how to first:   
+Create a skeleton DAG.    
+Then add a table to our database using sqlite, set up the connection and validate with a test.  
+Next we check an external API for user extraction is available using `http sensor` and setting up another connection for this.  
+We then download/extract the user with a get call using Using `simpleHttpOperator` and verifying with a test.  
+Next we parse the ouput of that task (xcom_pull) to process the data into json using pandas json_normalize and save to csv. 
+Finally we add the data to our database using `bash operator`.  
 
 FLOW:  
   
@@ -376,6 +389,9 @@ with DAG('user_processing', schedule_interval='@daily',
 ```python
 from airflow.providers.sqlite.operators.sqlite import SqliteOperator
  
+	...
+
+
 
 	# Unique id for each task required 
 	creating_table = SqliteOperator(
@@ -453,6 +469,8 @@ from airflow.providers.http.sensors.http import HttpSensor
 # python deps
 from datetime import datetime
 
+	...
+
 
 	is_api_available = HttpSensor(
 		task_id = 'is_api_available',
@@ -502,6 +520,9 @@ from airflow.providers.http.operators.http import SimpleHttpOperator
 import json 
 
 
+	...
+
+
 	extracting_user = SimpleHttpOperator(
 		task_id = 'extracting_user',
 		http_conn_id = 'user_api',
@@ -533,7 +554,49 @@ We are going to use the most popular operator `python operator` to process the r
   
 - `xcom` is a key in the airflowdb, it's value is the output of that tasks. 
 
+  
+#### Added Code  
 
+```python
+from airflow.operators.python import PythonOperator
+
+from pandas import json_normalize
+
+def _processing_user(ti):
+	users = ti.xcom_pull(task_ids=['extracting_user'])
+
+
+	# if ouput empty, or not the expected value
+	if not len(users) or 'results' not in users[0]:
+		raise ValueError('User is empty')
+
+	user = users[0]['results'][0]
+
+	## This becomes pandas dataframe
+	processed_user = json_normalize({
+		'firstname': user['name']['first'] ,
+		'lastname' : user['name']['last'],
+		'country' : user['location']['country'],
+		'username' : user['login']['username'],
+		'password' : user['login']['password'],
+		'email': user['email']
+	})
+
+	# header false means it doesn't save first row
+	processed_user.to_csv('/tmp/processed_user.csv', index=None, header=False)
+
+
+	...
+
+
+	processing_user = PythonOperator(
+		task_id = 'processing_user',
+		python_callable = _processing_user
+
+		)
+
+
+```
 
 ![](xcomout.png) 
   
@@ -557,10 +620,35 @@ Kristin,Grube,Germany,silverfish154,celebrity,kristin.grube@example.com
   
 ## Storing Users to Database
 
+- use bash operator
 
+ 
+```python
+from airflow.operators.bash import BashOperator
+	...
 
+	storing_user = BashOperator(
+		task_id = 'storing_user',
+		bash_command='echo -e ".separator ","\n.import /tmp/processed_user.csv users" | sqlite3 /Users/adammcmurchie/airflow/airflow.db'
+		)
+```
 
+It's **REALLY IMPORTANT** to follow exact syntax, can not have spaces like `bash_command = 'echo ...etc` 
+  
+The command does the following:
 
+- `echo -e` means enable backslahs interpretation
+- import the csv inside the table users
+- these two commands are executed inside the command 
+ - `sqlite3 /Users/adammcmurchie/airflow/airflow.db`. 
+
+so essentially echo the first bit into the pipped second bit. 
+  
+Test it first to execute:  
+
+```
+airflow tasks test user_processing storing_user 2021-01-01
+```
 
 
 
