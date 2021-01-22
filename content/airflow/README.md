@@ -430,7 +430,21 @@ Add New connection:
 **Always test** every task after you make it.  
 	- `airflow tasks test user_processing creating_table 2021-01-01`   
 
-![](success.png)
+![](success.png)  
+  
+Verify in terminal: 
+
+```sh
+sqlite3 airflow.db
+
+.tables 
+
+SELECT * FROM users;
+``` 
+  
+
+
+
   
 
 # Notes.  
