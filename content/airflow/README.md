@@ -415,9 +415,17 @@ with DAG('user_processing', schedule_interval='@daily',
 Set up connection:  
 - admin
 - connections. 
+<br/>
+<br/>
+<br/>
+  
   
 ![](connection.png)
-    
+
+<br/>
+<br/>
+<br/>
+<br/>
 Add New connection:
 
 - conn id = db_sqlite
