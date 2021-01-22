@@ -323,7 +323,7 @@ Create a pipeline called `user_processing.py` in dag folder.
 from airflow.models import DAG
 
 # python deps
-from datetime
+from datetime import datetime
   
 
 # Applied to all operators. 
@@ -333,8 +333,7 @@ default_args = {
   
   
 ## ID MUST BE UNIQUE
-with DAG('user_processing', 
-	schedule_interval=@'daily', 
+with DAG('user_processing', schedule_interval='@daily', 
 	default_args=default_args, 
 	catchup=False) as dag:
 	# define task/operator
@@ -353,7 +352,7 @@ from airflow.providers.sqlite.operators.sqlite import SqliteOperator
  
 """
 # python deps
-from datetime
+from datetime import datetime
   
 
 # Applied to all operators. 
@@ -363,11 +362,11 @@ default_args = {
   
 
 ## ID MUST BE UNIQUE
-with DAG('user_processing', 
-	schedule_interval=@'daily', 
+with DAG('user_processing', schedule_interval='@daily', 
 	default_args=default_args, 
 	catchup=False) as dag:
 	# define task/operator
+
 """
 
 	# Unique id for each task required 
@@ -389,6 +388,20 @@ with DAG('user_processing',
 		)
 ```
 
+- Now start webserver and scheduler using airflow command. 
+- Check graph view to verify our DAG has one job 
+
+### Installing a provider 
+
+Go to airflow docs
+Pick the provider
+Run pip install and the provider name 
+
+i.e. `apache-airflow-providers-sqlite` 
+  
+
+
+  
 
 
 # Notes.  
