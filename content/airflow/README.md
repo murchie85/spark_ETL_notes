@@ -17,6 +17,10 @@
 - [UI](#UI). 
 - [Data Pipeline Example](#Data-Pipeline-Example)  
 - [Backfill and Catchup](#Backfill-and-Catchup)
+- [Parameters](#Parameters)
+- [Subdags](#Subdags)
+- [Task Groups](#Task-Groups)
+- [plugins with elastic](#plugins)
 
 ## Intro
    
@@ -25,14 +29,31 @@
   
 ### Quick Tips. 
   
+
+- Make sure DAG name matches name of file or it wont load
+- Plugins, need to create a plugin folder
 - Always test every task after you make it.  
 	- `airflow tasks test dagname taskid pastexecutiondate`   
 - Scheduling times can be tricky.
   
 
 **SQLITE DOES NOT ALLOW MULTIPLE WRITES AT THE SAME TIME** 
-  
+    
 
+**USING AIFLOW**  
+  
+```sh
+
+conda activate airflowEnv
+
+af # alias to jump to dir 
+
+airflow scheduler -D 
+airflow webserver 
+```
+
+
+  
 ### UseCases 
 
 Used for `orchastrating datajobs` including the logic flow, to manage failures, notifications, extract, transform, load.  
@@ -184,8 +205,15 @@ airflow.cfg		airflow.db		logs			unittests.cfg		webserver_config.py
 
 ```sh
 airflow cheatsheet
-```
+``` 
+### Kill Airflow Scheduler 
+
+- Run at base airflow dir 
   
+```sh
+cat airflow-scheduler.pid | xargs kill
+```
+    
 #### Create Users 
 
 ```sh
@@ -755,10 +783,9 @@ airflow config get-value core sql_alchemy_conn
 Two parameters are used: 
 
 
-`sql_alchemy_conn`
-  
-`executor` 
-  
+`sql_alchemy_conn`   `executor` 
+    
+    
 
 Running : 
 
@@ -815,8 +842,159 @@ with DAG('user_processing', schedule_interval='@daily',
 
 ```
 
+## Parameters
+  
+In config file.  
+  
+ - `parallelism` is how many jobs max, **this can be set in one dag only rather than the whole airflow**  
+ - `dag_concurrency` The number of concurrent tasks max  
+ - `max_active_runs_per_dag`  
+ - `load_examples` to toggle on/off
+
+## Subdags  
+  
+**NOT RECOMMENDED**  
+  
+1. You could end up with deadlocks (not being able to execute any more tasks)  
+2. subdags are quite complex.  
+3. Have their own executor.  
+  
+but if we want to do them:  
+    
+Group a bunch of similar tasks into a subdag, to simplify the flow.  
+  
+from this:  
+
+![](subdagsone.png)  
+    
+to this:  
+  
+
+![](subdagstwo.png)  
+  
+  
+Import subdag operator:  
+  
+```python
+from airflow.operators.subdag import SubDagOperator
+```
+
+- Create subdag folder  
+- Add a `subDagOperator` task
+- Create a function for the subdag
 
 
+Instead of say task one and two like below in a dag:  
+
+
+`parallel_dag.py`  
+
+```python 
+
+with DAG('parallel_dag', schedule_interval='@daily', 
+	default_args=default_args, 
+	catchup=False) as dag:
+
+
+	task_1 = BashOperator(
+	task_id = 'task_1',
+	bash_command = 'sleep 3'
+	)
+	task_2 = BashOperator(
+	task_id = 'task_2',
+	bash_command = 'sleep 3'
+	)
+
+...
+```     
+
+we add these to a subdag file: 
+`subdag_parallel_dag.py`   
+  
+
+```python
+def subdag_parallel_dag(parent_dag_id, child_dag_id, default_args):
+	with DAG(dag_id=f'{parent_dag_id}.{child_dag_id}' , default_args = default_args) as dag:
+		task_1 = BashOperator(
+		task_id = 'task_1',
+		bash_command = 'sleep 3'
+		)
+		task_2 = BashOperator(
+		task_id = 'task_2',
+		bash_command = 'sleep 3'
+		)
+
+		return dag
+```
+
+
+  
+
+Then we modify dag folder to add the following:   
+  
+`parallel_dag.py`    
+
+```python
+
+from airflow.operators.subdag import SubDagOperator
+
+## Import the actual subdag module we made
+from subdags.subdag_parallel_dag  import subdag_parallel_dag
+
+processing = SubDagOperator(
+	task_id = 'processing_tasks',
+	subdag = subdag_parallel_dag('parallel_dag' , 'processing_tasks', default_args)
+	)  
+  
+task_1 >> [task_2,task_3] >> task_4
+```  
+
+- import subdag operator 
+- import our subdag module 
+- add SubDagOperator tasks, subdag has to be subdag method name with parent DAG name passed in and child dag id
+- Delete the two tasks we are subdagging 
+- update dependencies 
+  
+
+When viewing these, we just zoom into it in the UI.  
+  
+  
+
+
+## Task Groups
+
+  
+Instead of all the steps above, we can just run the following:  
+  
+```python
+
+from airflow.utils.task_group import TaskGroup 
+  
+
+with TaskGroup('processing_tasks') as processing_tasks:
+	task_2 = BashOperator(
+		task_id = 'task_2',
+		bash_command = 'sleep 3'
+		)
+	task_3 = BashOperator(
+		task_id = 'task_3',
+		bash_command = 'sleep 3'
+		)	
+
+  
+task_1 >> processing_tasks >> task_4
+```
+
+  
+# Plugins  
+   
+- have to create plugin folder
+- airflow less than 2.0 u need to specify tons and plugin class, now you just create python modules. 
+- plugins lazy loaded, you need to restart server
+- after that can modify on the fly  
+
+<br/>  
+  
 
 # Notes.  
   
