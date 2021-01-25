@@ -20,6 +20,8 @@
 - [Parameters](#Parameters)
 - [Subdags](#Subdags)
 - [Task Groups](#Task-Groups)
+- [Sharing Data between XCOMS](#Sharing-Data-between-XCOMS) 
+- [Conditional Control](#Condition-Control)
 - [plugins with elastic](#plugins)
 
 ## Intro
@@ -27,15 +29,16 @@
 [Navigation](#Navigation) 
   
   
-### Quick Tips. 
+### Quick Tips
   
-
+  
+- For tasks, make the `python_callable=` a function to simplify flow and allow multiple tasks to do the same thing. 
 - Make sure DAG name matches name of file or it wont load
 - Plugins, need to create a plugin folder
 - Always test every task after you make it.  
 	- `airflow tasks test dagname taskid pastexecutiondate`   
 - Scheduling times can be tricky.
-  
+- May need to remove XCOMs to free up memory `admin -> xcoms -> search/delete`  
 
 **SQLITE DOES NOT ALLOW MULTIPLE WRITES AT THE SAME TIME** 
     
@@ -970,6 +973,8 @@ Instead of all the steps above, we can just run the following:
 
 from airflow.utils.task_group import TaskGroup 
   
+... task1
+
 
 with TaskGroup('processing_tasks') as processing_tasks:
 	task_2 = BashOperator(
@@ -981,11 +986,269 @@ with TaskGroup('processing_tasks') as processing_tasks:
 		bash_command = 'sleep 3'
 		)	
 
-  
+
+... task4
+
+
 task_1 >> processing_tasks >> task_4
 ```
-
   
+
+
+We can actually  **NEST TASK GROUPS** to get a task run specific group but need to read up more on this.  
+  
+```python
+
+from airflow.utils.task_group import TaskGroup 
+  
+
+with TaskGroup('processing_tasks') as processing_tasks:
+
+... task1
+
+
+	task_2 = BashOperator(
+		task_id = 'task_2',
+		bash_command = 'sleep 3'
+		)
+
+	with TaskGroup('spark_tasks') as spark_task:
+		task_3 = BashOperator(
+			task_id = 'task_3',
+			bash_command = 'sleep 3'
+			)	
+	with TaskGroup('flink_tasks') as flink_tasks:
+		task_3 = BashOperator(
+			task_id = 'task_3',
+			bash_command = 'sleep 3'
+			)	
+
+
+... task4 
+
+task_1 >> processing_tasks >> task_4
+```
+      
+
+<br/>
+<br/>  
+
+
+# Sharing Data between XCOMS
+    
+### XCOM (Cross Communications)      
+  
+  
+### In a Nutshell.  
+
+```python
+# PUSH XCOM  
+# The push could be in a method used by tasks  
+python_callable = ti.xcom_push(key='model_accuracy', value=accuracy)
+
+## PULL XCOM  
+# it pulls from any task id defined (full path)
+accuracies = ti.xcom_pull(key='model_accuracy', 
+	task_ids=['processing_tasks.training_model_a'])
+
+```
+
+### Notes  
+
+- Used for exchanging messages between tasks
+- A little objects, with a `key` used as an `identifier`in order to pull data from task.  
+- Be carful, as they are limited in size.  
+	- This data is stored in metadatabase (64kb for sqlite)  
+- Note xcoms will be overwritten if same task/key
+- Operators push XCOMS to disable add `do_xcom_push = False` in operator instantiation.  
+
+
+Take this use case:   
+  
+```sh
+TASK: ListingFileNames   >>   TASK: DownloadingFiles
+```
+  
+- We could get the names list by using external mem (db, storage etc) via push/pull.  
+	- this adds complexity.  
+
+### EXAMPLE XCOMS PROGRAM  
+    
+<br/>
+<br/>  
+
+![xcom](xcom.png)  
+  
+
+```python
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from airflow.operators.subdag import SubDagOperator
+from airflow.utils.task_group import TaskGroup
+
+from random import uniform
+from datetime import datetime
+
+default_args = {
+    'start_date': datetime(2020, 1, 1)
+}
+
+def _training_model():
+    accuracy = uniform(0.1, 10.0)
+    print(f'model\'s accuracy: {accuracy}')
+
+def _choose_best_model():
+    print('choose best model')
+
+with DAG('xcom_dag', schedule_interval='@daily', default_args=default_args, catchup=False) as dag:
+
+    downloading_data = BashOperator(
+        task_id='downloading_data',
+        bash_command='sleep 3'
+    )
+
+    with TaskGroup('processing_tasks') as processing_tasks:
+        training_model_a = PythonOperator(
+            task_id='training_model_a',
+            python_callable=_training_model
+        )
+
+        training_model_b = PythonOperator(
+            task_id='training_model_b',
+            python_callable=_training_model
+        )
+
+        training_model_c = PythonOperator(
+            task_id='training_model_c',
+            python_callable=_training_model
+        )
+
+    choose_model = PythonOperator(
+        task_id='task_4',
+        python_callable=_choose_best_model
+    )
+
+    downloading_data >> processing_tasks >> choose_model
+``` 
+  
+  
+- Each subtaks just calls a function which gens a random number
+- the final tasks just prints `chose best model`  
+  
+First let's **push XCOM** value, so the training method passes its random number on.    
+    
+
+1. Simply add a reurn statement in the function (it gets passed to `python_callable`)  
+  
+  
+```python
+#def _training_model():
+#    accuracy = uniform(0.1, 10.0)
+#    print(f'model\'s accuracy: {accuracy}')
+    return(accuracy)
+```  
+  
+2. Run the job and look at the xcoms output from admin dropdown:  
+    
+![xcomOut](xcomOut.png)  
+  
+`key` the identifier of xcom , so we can pull from database 
+`value` the data we share between tasks (it needs to be serialisable in json/pickle)  
+  
+Note the task ID column:  
+ 
+`processing_tasks.training_model_a`  
+`processing_tasks.training_model_b`  
+`processing_tasks.training_model_c`  
+  
+
+It says where it got **pushed from**.  
+  
+Now let's **PUSH XCOM WITH DEFINED VALUE**  
+  
+  
+1. Simply specify `ti` in the method  
+  
+  
+```python
+def _training_model(ti):
+    accuracy = uniform(0.1, 10.0)
+    print(f'model\'s accuracy: {accuracy}')
+    ti.xcom_push(key='model_accuracy', value=accuracy)
+```  
+2. Note the change in values returned.  
+![xcomvalue](xcomvalue.png)  
+
+
+<br/>    
+  
+Let's **PULL XCOMS**  
+    
+1. For last task, simply use `ti.com_pull` with key, task_ids (using full path)  
+2. 
+```python
+
+def _choose_best_model(ti):
+    print('choose best model')
+    print('Values are')
+    accuracies = ti.xcom_pull(
+    	key='model_accuracy', 
+    	task_ids=['processing_tasks.training_model_a',
+    	'processing_tasks.training_model_b',
+    	'processing_tasks.training_model_c'])
+    print(accuracies)
+
+```
+  
+- We can validate this worked by viewing the logs on task four and looking at print statement.  
+  
+<br/>
+
+## Condition Control   
+    
+
+We do this using the **branchPythonOperator**  
+  
+
+From the example above, where we have three subtasks returning random accuracy number.  
+  
+- `choose_model` task based on accuracy condition  
+  
+1. Import operator
+
+```python
+from airflow.operators.python import branchPythonOperator
+```
+
+2. In your tasks section, at the bottom add a branch operator for accuracy eval:  
+
+```python
+
+#    choose_model = PythonOperator(
+#        task_id='task_4',
+#        python_callable=_choose_best_model
+#    )
+	...
+
+    is_accurate = BranchPythonOperator(
+        task_id='is_accurate',
+        python_callable=_is_accurate)
+```
+    
+3. Then define the function:  
+  
+```python
+
+def _is_accurate():
+	return('accurate')
+  
+```
+
+<br/>
+
+
+
 # Plugins  
    
 - have to create plugin folder
